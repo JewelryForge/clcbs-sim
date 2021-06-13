@@ -20,7 +20,7 @@
 
 
     <!-- Import all Gazebo-customization elements, including Gazebo colors -->
-    <xacro:include filename="${urdf_src}/course_agv.gazebo" />
+    <xacro:include filename="${urdf_src}/agent_sim.gazebo" />
     <!-- Import Rviz colors -->
     <xacro:include filename="${urdf_src}/materials.xacro" />
 
