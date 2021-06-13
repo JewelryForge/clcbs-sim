@@ -29,7 +29,7 @@
     <link name="robot_base" />
 
     <!-- left wheel -->
-    <joint name="course_agv__left_wheel_joint" type="continuous">
+    <joint name="agent_leftwheel_joint" type="continuous">
         <parent link="robot_base" />
         <child link="course_agv__left_wheel" />
         <origin rpy="0 ${PI/2.0} ${PI/2.0}" xyz="0.0 ${(width / 2.0 + wheel_thickness / 2.0)} ${wheel_radius}" />
@@ -58,7 +58,7 @@
     </link>
 
     <!-- right wheel -->
-    <joint name="course_agv__right_wheel_joint" type="continuous">
+    <joint name="agent_rightwheel_joint" type="continuous">
         <parent link="robot_base" />
         <child link="course_agv__right_wheel" />
         <origin rpy="0 ${PI/2.0} ${PI/2.0}" xyz="0.0 ${-(width / 2.0 + wheel_thickness / 2.0)}  ${wheel_radius}" />
@@ -87,7 +87,7 @@
     </link>
 
     <!-- imu -->
-    <joint name="course_agv__imu_joint" type="fixed">
+    <joint name="agent_imu_joint" type="fixed">
         <parent link="robot_base" />
         <child link="course_agv__imu" />
         <origin rpy="0  0  0" xyz="0.0 0.0 ${height/2 + chassis_height}" />
@@ -116,7 +116,7 @@
     </link>
 
     <!-- chassis -->
-    <joint name="course_agv__chassis_joint" type="fixed">
+    <joint name="agent_chassis_joint" type="fixed">
         <parent link="robot_base" />
         <child link="robot_chassis" />
         <origin xyz="${-center_span} 0.0 0.0" />
@@ -198,7 +198,7 @@
 
     <transmission name="tran_left_wheel">
         <type>transmission_interface/SimpleTransmission</type>
-        <joint name="course_agv__left_wheel_joint">
+        <joint name="agent_leftwheel_joint">
             <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
         </joint>
         <actuator name="motor_left">
@@ -209,7 +209,7 @@
 
     <transmission name="tran_right_wheel">
         <type>transmission_interface/SimpleTransmission</type>
-        <joint name="course_agv__right_wheel_joint">
+        <joint name="agent_rightwheel_joint">
             <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
         </joint>
         <actuator name="motor_right">
