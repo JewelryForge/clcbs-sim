@@ -27,8 +27,9 @@
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen" />
   </group>
 
+  <include file="$(find clcbs_gazebo)/launch/clcbs_world_rviz.launch" />
+
   <!-- ros_control course_agv launch file -->
   <!-- <include file="$(find course_agv_control)/launch/course_agv_control.launch"/> -->
-  <!-- <include file="$(find clcbs_gazebo)/launch/clcbs_world_rviz.launch" /> -->
 
 </launch>
