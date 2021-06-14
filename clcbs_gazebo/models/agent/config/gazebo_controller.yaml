@@ -2,7 +2,7 @@ agent_control:
   # Publish all joint states -----------------------------------
   joint_state_controller:
     type: joint_state_controller/JointStateController
-    publish_rate: 50  
+    publish_rate: 100
 
   # Position Controllers ---------------------------------------
   agent_leftwheel_controller:
@@ -14,5 +14,5 @@ agent_control:
     joint: agent_rightwheel_joint
     # pid: {p: 100.0, i: 0.01, d: 10.0}
   gazebo_ros_control/pid_gains:
-    agent_leftwheel_joint: {p: 5.0, i: 0.1, d: 0.0}
-    agent_rightwheel_joint: {p: 5.0, i: 0.1, d: 0.0}
+    agent_leftwheel_joint: {p: 10.0, i: 0.1, d: 0.0}
+    agent_rightwheel_joint: {p: 10.0, i: 0.1, d: 0.0}

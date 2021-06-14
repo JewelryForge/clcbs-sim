@@ -17,23 +17,14 @@ class VelocityController:
         self.vw_limit = 0.0
         self.vmax, self.wmax = 3.0, 3.0
         self.rot_radius = 3.0
-
-    def accelerate(self):
-        self.vx += self.vmax * self.step
+    
+    def set_vx(self, vx):
+        self.vx = vx
         self.vw_limit = min(abs(self.vx) / self.rot_radius, self.wmax)
         self.limit_all()
 
-    def decelerate(self):
-        self.vx -= self.vmax * self.step
-        self.vw_limit = min(abs(self.vx) / self.rot_radius, self.wmax)
-        self.limit_all()
-
-    def left_turn(self):
-        self.vw += self.step * self.vw_limit
-        self.limit_all()
-
-    def right_turn(self):
-        self.vw -= self.step * self.vw_limit
+    def set_vw(self, vw):
+        self.vw = vw
         self.limit_all()
 
     def reset(self):
@@ -53,16 +44,16 @@ class VelocityController:
 class StateManager:
     def __init__(self, name, states) -> None:
         self.name, self.states = name, states
-        self.aligning_param = np.array([-30, -30, 0])
+        self.aligning_param = np.array([-25, -25, 0])
 
     def align(self, pos: np.ndarray):
-        return pos - np.array(self.aligning_param)
+        return pos + np.array(self.aligning_param)
 
     def get_state(self, t):
         return self.align(self._get_state(t))
 
     def _get_state(self, t):
-        idx = int(t)
+        idx = int(t) + 1
 
         if idx == 0:
             start_state = self.states[0]
@@ -88,7 +79,14 @@ class StateManager:
             final_state = self.states[-1]
             return np.array([final_state['x'], final_state['y'], final_state['yaw']])
 
-
+def angle_diff(a1, a2):
+    res = a1 - a2
+    if res > math.pi:
+        return res - 2 * math.pi
+    if res < -math.pi:
+        return res + 2 * math.pi
+    return res
+    
 class PidVelocityPublisher(VelocityController):
     def __init__(self, name, states, **args):
         super().__init__()
@@ -102,37 +100,46 @@ class PidVelocityPublisher(VelocityController):
         self.prop, self.int, self.diff = args.get(
             'prop', 10), args.get('int', 1), args.get('diff, 0')
         self.t_start = None
-        self.curr_state = None  # TODO: NOTE HERE!
+        self.last_state, self.curr_state = None, None  # TODO: NOTE HERE!
         self.state_manager = StateManager(name, states)
 
     def start(self):
         self.t_start = rospy.get_time()
 
     def state_update(self, msg: geometry_msgs.Pose):
+        self.last_state = self.curr_state
         rot = PyKDL.Rotation.Quaternion(msg.orientation.x, msg.orientation.y,
                                         msg.orientation.z, msg.orientation.w)
 
         self.curr_state = np.array(
             [msg.position.x, msg.position.y, rot.GetRPY()[2]])
-        print(rospy.get_time() - self.t_start)
 
     def spin(self):
         rate = rospy.Rate(50)
         while not rospy.is_shutdown():
-            if self.curr_state is not None:
-                self.pub(True)   
+            if self.last_state is not None:
+                if self.t_start is None:
+                    self.start()
+                self.pub(True)
             rate.sleep()
+
 
     def pub(self, verbose=True):
         diff_time = rospy.get_time() - self.t_start
-        diff_state = self.state_manager.get_state(diff_time) - self.curr_state
-        self.vx = 1 * math.hypot(*diff_state[:2])
-        self.vw = 1 * abs(diff_state[2] - self.curr_state[2])
-        self.limit_all()
+        desired_state = self.state_manager.get_state(diff_time)
+        dx, dy, dyaw = (self.state_manager.get_state(diff_time + 0.1) - self.state_manager.get_state(diff_time)) / 0.1
+        dv = dx / math.cos(desired_state[2])
+        # print('desired', dx, dy, dyaw, end='')
+        diff_state = desired_state - self.curr_state
+        yaw = self.curr_state[2]
+        self.set_vx(dv + 5 * (diff_state[0] * math.cos(yaw) + diff_state[1] * math.sin(yaw))) # change to continuous
+        self.set_vw(angle_diff(diff_state[2], yaw) + dyaw)
+        #  +                    angle_diff(desired_state[2], self.curr_state[2])) + dyaw)
+        
         self.left_pub.publish(self.vx - self.vw * self.radius)
         self.right_pub.publish(self.vx + self.vw * self.radius)
         if verbose:
-            print(f"publish: vx - {self.vx:.2f} vw - {self.vw:.2f}")
+            print(f'[{rospy.get_time()}]', diff_state, f"publish: {self.vx:.1f} {self.vw:.1f}", "real:", (self.curr_state - self.last_state) * 50)
 
 
 if __name__ == "__main__":
@@ -154,7 +161,6 @@ if __name__ == "__main__":
     name = 'agent0'
     sch = schedule[name]
     pub = PidVelocityPublisher(name, sch)
-    pub.start()
     pub.spin()
     # rospy.spin()
     # managers = []

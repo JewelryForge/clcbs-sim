@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import yaml
 
-OBS_RADIUS = 1.0
+OBS_RADIUS = 0.01
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
     f = open(args.i, 'r', encoding='utf-8')
     cfg = yaml.load(f.read())
     f.close()
-    map_size = 200, 200
+    map_size = 1000, 1000
     dimensions, obstacles = np.array(cfg['map']['dimensions']), np.array(cfg['map']['obstacles'])
     map_image = np.zeros(map_size, dtype=np.uint8)
 
@@ -42,7 +42,7 @@ def main():
     edge = np.zeros([map_size[0] + 2 * x_edge, map_size[1] + 2 * y_edge], dtype=np.uint8)
     edge.fill(255)
     edge[x_edge:map_size[0] + x_edge, y_edge:map_size[1] + y_edge] = map_image
-    edge = cv2.resize(edge, (129, 129))
+    edge = cv2.resize(edge, (513, 513))
     print('Done')
     cv2.imwrite(args.o, edge)
 
