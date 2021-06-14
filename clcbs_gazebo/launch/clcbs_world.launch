@@ -29,6 +29,11 @@
 
   <include file="$(find clcbs_gazebo)/launch/clcbs_world_rviz.launch" />
 
+  <node pkg="clcbs_gazebo" type="keyboard_velocity.py" name="keyboard_terminal" output="screen" launch-prefix="xterm -e" />
+
+  <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load"/>
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" ns="/agent_control" args="joint_state_controller agent_leftwheel_controller agent_rightwheel_controller"/>
+
   <!-- ros_control course_agv launch file -->
   <!-- <include file="$(find course_agv_control)/launch/course_agv_control.launch"/> -->
 

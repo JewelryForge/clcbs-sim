@@ -20,10 +20,7 @@ class GazeboLinkPose:
             raise ValueError("'link_name' is an empty string")
 
         self.states_sub = rospy.Subscriber("/gazebo/link_states", LinkStates, self.callback)
-        self.pose_pub = rospy.Publisher(
-            "/gazebo/" + (self.robot_name + '_' + self.link_name),
-            Pose,
-            queue_size=10)
+        self.pose_pub = rospy.Publisher(f'/agent_states/{self.robot_name}_{self.link_name}', Pose, queue_size=10)
         self.tf_pub = tf.TransformBroadcaster()
 
     def callback(self, data):
@@ -43,6 +40,7 @@ class GazeboLinkPose:
 
 if __name__ == '__main__':
     try:
+
         rospy.init_node('robot_pose_tf_publisher')
         parser = argparse.ArgumentParser(description='Receive transforms from gazebo and send tf')
         parser.add_argument('-r', type=str, required=True)

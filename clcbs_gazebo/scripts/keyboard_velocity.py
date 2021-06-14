@@ -1,24 +1,15 @@
 #!/usr/bin/env python3
 
-import geometry_msgs.msg
+from geometry_msgs.msg import Twist
+import std_msgs.msg as std_msgs
 import rospy
 from pynput.keyboard import Key, Listener
 
-command = {
-    "vx": 0.0,
-    "vw": 0.0,
-    "step": 0.1,
-    "vmax": 3.0
-}
+command = {"vx": 0.0, "vw": 0.0, "step": 0.1, "vmax": 3.0}
 
 
 def limitNum(num, minNum, maxNum):
-    if num > maxNum:
-        return maxNum
-    if num < minNum:
-        return minNum
-    return num
-
+    return maxNum if num > maxNum else max(num, minNum)
 
 def cmd_num_func(cmd, key, value, minValue, maxValue):
     def function():
@@ -26,11 +17,9 @@ def cmd_num_func(cmd, key, value, minValue, maxValue):
 
     return function
 
-
 def cmd_reset_func(cmd):
     def function():
-        cmd["vx"] = 0
-        cmd["vw"] = 0
+        cmd["vx"], cmd["vw"]  = 0.0, 0.0
 
     return function
 
@@ -43,21 +32,22 @@ KEY_MAP_TABLE = {
     Key.space: cmd_reset_func(command)
 }
 
-
-class Publisher:
+class VelocityPublisher:
     def __init__(self):
-        self.vel_pub = rospy.Publisher(
-            '/course_agv/velocity',
-            geometry_msgs.msg.Twist, queue_size=1)
-        self.cmd = geometry_msgs.msg.Twist()
+        self.left_pub = rospy.Publisher('/agent_control/agent_leftwheel_controller/command',
+                                        std_msgs.Float64, queue_size=1)
+        self.right_pub = rospy.Publisher('/agent_control/agent_rightwheel_controller/command',
+                                         std_msgs.Float64, queue_size=1)
+        self.radius = (2 + 0.5 / 3) / 2
 
     def pub(self, command):
+        vx, vw = command['vx'], command['vw']
+        self.left_pub.publish(vx - vw  * self.radius)
+        self.right_pub.publish(vx + vw  * self.radius)
+
         if rospy.is_shutdown():
             exit()
-        print("publish command : vx - %.2f vw - %.2f" % (command['vx'], command['vw']))
-        self.cmd.linear.x = command["vx"]
-        self.cmd.angular.z = command["vw"]
-        self.vel_pub.publish(self.cmd)
+        print(f"publish command : vx - {command['vx']:.2f} vw - { command['vw']:.2f}")
 
 
 def press_function(map_table, publisher):
@@ -70,7 +60,6 @@ def press_function(map_table, publisher):
             convert_key = key.char
         except AttributeError:
             convert_key = key
-        # print('{0} pressed'.format(convert_key))
         if convert_key in map_table:
             map_table[convert_key]()
             publisher.pub(command)
@@ -84,7 +73,7 @@ def main():
     node_name = "velocity_publisher"
     print("node : ", node_name)
     rospy.init_node(node_name, anonymous=True)
-    publisher = Publisher()
+    publisher = VelocityPublisher()
     with Listener(on_press=press_function(KEY_MAP_TABLE, publisher)) as listener:
         listener.join()
 
