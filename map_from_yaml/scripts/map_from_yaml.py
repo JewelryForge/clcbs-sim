@@ -18,7 +18,7 @@ def main():
     f = open(args.i, 'r', encoding='utf-8')
     cfg = yaml.load(f.read())
     f.close()
-    map_size = 100, 100
+    map_size = 200, 200
     dimensions, obstacles = np.array(cfg['map']['dimensions']), np.array(cfg['map']['obstacles'])
     map_image = np.zeros(map_size, dtype=np.uint8)
 
@@ -29,6 +29,8 @@ def main():
         return a / map_size[i] * dimensions[i]
 
     for ob in obstacles:
+        ob[1] = dimensions[1] - ob[1]
+        ob[0], ob[1] = ob[1], ob[0]
         x_range = max(0, c2d(ob[0] - OBS_RADIUS, 0)), min(map_size[0], c2d(ob[0] + OBS_RADIUS, 0) + 1)
         y_range = max(0, c2d(ob[1] - OBS_RADIUS, 0)), min(map_size[0], c2d(ob[1] + OBS_RADIUS, 0) + 1)
         for x in range(*x_range):

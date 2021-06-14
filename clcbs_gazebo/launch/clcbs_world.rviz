@@ -9,7 +9,6 @@ Panels:
         - /Grid1
         - /Map1
         - /RobotModel1
-        - /RobotModel1/Status1
       Splitter Ratio: 0.5
     Tree Height: 719
   - Class: rviz/Selection
@@ -76,11 +75,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        agent_imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
         agent_leftwheel_link:
           Alpha: 1
           Show Axes: false
@@ -106,6 +100,41 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+        agent_leftwheel_link:
+          Value: true
+        agent_rightwheel_link:
+          Value: true
+        map:
+          Value: true
+        robot_base:
+          Value: true
+        robot_chassis:
+          Value: true
+        world_base:
+          Value: true
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        world_base:
+          map:
+            robot_base:
+              agent_leftwheel_link:
+                {}
+              agent_rightwheel_link:
+                {}
+              robot_chassis:
+                {}
+      Update Interval: 0
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -134,7 +163,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 82.4602279663086
+      Distance: 39.84767150878906
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -150,9 +179,9 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
+      Pitch: 1.544796347618103
       Target Frame: <Fixed Frame>
-      Yaw: 0.015398639254271984
+      Yaw: 4.71858024597168
     Saved: ~
 Window Geometry:
   Displays:
