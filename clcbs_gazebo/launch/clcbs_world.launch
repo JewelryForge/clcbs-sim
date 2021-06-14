@@ -22,7 +22,7 @@
 
   <!-- <group ns='agent1'> -->
     <param name="robot_description" command="$(find xacro)/xacro --inorder '$(arg model_src)/agent/urdf/agent_sim.xacro'" />
-    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model agent1 -param robot_description -y 15" />
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model agent1 -param robot_description -x -11 -y 14" />
     <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
     <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen" />
   <!-- </group> -->

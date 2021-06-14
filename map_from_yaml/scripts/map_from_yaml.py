@@ -41,7 +41,7 @@ def main():
     edge.fill(255)
     edge[x_edge:map_size[0] + x_edge, y_edge:map_size[1] + y_edge] = map_image
     edge = cv2.resize(edge, (129, 129))
-    print(edge)
+    print('Done')
     cv2.imwrite(args.o, edge)
 
 
