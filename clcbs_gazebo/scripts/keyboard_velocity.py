@@ -1,80 +1,93 @@
 #!/usr/bin/env python3
 
-from geometry_msgs.msg import Twist
 import std_msgs.msg as std_msgs
 import rospy
 from pynput.keyboard import Key, Listener
 
-command = {"vx": 0.0, "vw": 0.0, "step": 0.1, "vmax": 3.0}
 
-
-def limitNum(num, minNum, maxNum):
-    return maxNum if num > maxNum else max(num, minNum)
-
-def cmd_num_func(cmd, key, value, minValue, maxValue):
-    def function():
-        cmd[key] = limitNum(cmd[key] + value, minValue, maxValue)
-
-    return function
-
-def cmd_reset_func(cmd):
-    def function():
-        cmd["vx"], cmd["vw"]  = 0.0, 0.0
-
-    return function
-
-
-KEY_MAP_TABLE = {
-    'w': cmd_num_func(command, "vx", command["step"], -command["vmax"], command["vmax"]),
-    's': cmd_num_func(command, "vx", -command["step"], -command["vmax"], command["vmax"]),
-    'a': cmd_num_func(command, "vw", command["step"], -command["vmax"], command["vmax"]),
-    'd': cmd_num_func(command, "vw", -command["step"], -command["vmax"], command["vmax"]),
-    Key.space: cmd_reset_func(command)
-}
-
-class VelocityPublisher:
+class VelocityController:
     def __init__(self):
+        self.vx, self.vw, self.step = 0.0, 0.0, 0.1
+        self.vw_limit = 0.0
+        self.vmax, self.wmax = 3.0, 3.0
+        self.rot_radius = 3.0
+
+    def accelerate(self):
+        self.vx += self.vmax * self.step
+        self.vw_limit = min(abs(self.vx) / self.rot_radius, self.wmax)
+        self.limit_all()
+
+    def decelerate(self):
+        self.vx -= self.vmax * self.step
+        self.vw_limit = min(abs(self.vx) / self.rot_radius, self.wmax)
+        self.limit_all()
+
+    def left_turn(self):
+        self.vw += self.step * self.vw_limit
+        self.limit_all()
+
+    def right_turn(self):
+        self.vw -= self.step * self.vw_limit
+        self.limit_all()
+
+    def reset(self):
+        self.vx, self.vw = 0.0, 0.0
+
+    def limit_all(self):
+        if self.vx > self.vmax:
+            self.vx = self.vmax
+        elif self.vx < -self.vmax:
+            self.vx = -self.vmax
+        if self.vw > self.vw_limit:
+            self.vw = self.vw_limit
+        elif self.vw < -self.vw_limit:
+            self.vw = -self.vw_limit
+
+
+
+class VelocityPublisher(VelocityController):
+    def __init__(self):
+        super().__init__()
         self.left_pub = rospy.Publisher('/agent_control/agent_leftwheel_controller/command',
                                         std_msgs.Float64, queue_size=1)
         self.right_pub = rospy.Publisher('/agent_control/agent_rightwheel_controller/command',
                                          std_msgs.Float64, queue_size=1)
         self.radius = (2 + 0.5 / 3) / 2
+        self.KBD_MAP = {
+            'w': self.accelerate,
+            's': self.decelerate,
+            'a': self.left_turn,
+            'd': self.right_turn,
+            Key.space: self.reset
+        }
 
-    def pub(self, command):
-        vx, vw = command['vx'], command['vw']
-        self.left_pub.publish(vx - vw  * self.radius)
-        self.right_pub.publish(vx + vw  * self.radius)
+    def pub(self, verbose=True):
+        self.left_pub.publish(self.vx - self.vw * self.radius)
+        self.right_pub.publish(self.vx + self.vw * self.radius)
 
         if rospy.is_shutdown():
             exit()
-        print(f"publish command : vx - {command['vx']:.2f} vw - { command['vw']:.2f}")
+        if verbose:
+            print(f"publish: vx - {self.vx:.2f} vw - {self.vw:.2f}")
+
+    def kbd_input(self, key):
+        def nop():
+            pass
+        self.KBD_MAP.get(key, nop)()
+        self.pub()
 
 
-def press_function(map_table, publisher):
+def press_function(publisher: VelocityPublisher):
     def on_press(key):
-        global NEED_EXIT
-        if key == Key.esc:
-            NEED_EXIT = True
-            return False
-        try:
-            convert_key = key.char
-        except AttributeError:
-            convert_key = key
-        if convert_key in map_table:
-            map_table[convert_key]()
-            publisher.pub(command)
-        else:
-            print('\n{0} not in table'.format(convert_key))
-
+        convert_key = key.char if hasattr(key, 'char') else key
+        publisher.kbd_input(convert_key)
     return on_press
 
 
 def main():
-    node_name = "velocity_publisher"
-    print("node : ", node_name)
-    rospy.init_node(node_name, anonymous=True)
+    rospy.init_node("velocity_publisher", anonymous=True)
     publisher = VelocityPublisher()
-    with Listener(on_press=press_function(KEY_MAP_TABLE, publisher)) as listener:
+    with Listener(on_press=press_function(publisher)) as listener:
         listener.join()
 
 

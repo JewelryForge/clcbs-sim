@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import rospy
+import math
 import tf
 import argparse
 from gazebo_msgs.msg import LinkStates
@@ -34,6 +35,8 @@ class GazeboLinkPose:
         p, o = self.link_pose.position, self.link_pose.orientation
         translation = [p.x, p.y, p.z]
         rotation = [o.x, o.y, o.z, o.w]
+        if abs(math.hypot(*rotation) - 1) > 0.1:
+            rotation = [0, 0, 0, 1]
         self.tf_pub.sendTransform(translation, rotation, rospy.Time.now(), self.link_name, "map")
         print('tf published')
 
