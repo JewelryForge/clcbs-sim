@@ -40,7 +40,7 @@
         </collision>
     </gazebo>
 
-    <gazebo reference="course_agv__left_wheel">
+    <gazebo reference="agent_leftwheel_link">
         <collision>
             <surface>
                 <friction>
@@ -56,7 +56,7 @@
         <material>Gazebo/DarkGrey</material>
     </gazebo>
 
-    <gazebo reference="course_agv__right_wheel">
+    <gazebo reference="agent_rightwheel_link">
         <collision>
             <surface>
                 <friction>
@@ -72,7 +72,7 @@
         <material>Gazebo/DarkGrey</material>
     </gazebo>
     <!-- imu -->
-    <gazebo reference="course_agv__imu">
+    <gazebo reference="agent_imu_link">
         <gravity>true</gravity>
         <material>Gazebo/Red</material>
         <sensor name="imu_sensor" type="imu">
@@ -87,7 +87,7 @@
                 <gaussianNoise>0.0</gaussianNoise>
                 <xyzOffset>0 0 0</xyzOffset>
                 <rpyOffset>0 0 0</rpyOffset>
-                <frameName>course_agv__imu</frameName>
+                <frameName>agent_imu_link</frameName>
             </plugin>
             <pose>0 0 0 0 0 0</pose>
         </sensor>

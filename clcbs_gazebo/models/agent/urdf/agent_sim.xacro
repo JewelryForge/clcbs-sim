@@ -31,12 +31,12 @@
     <!-- left wheel -->
     <joint name="agent_leftwheel_joint" type="continuous">
         <parent link="robot_base" />
-        <child link="course_agv__left_wheel" />
+        <child link="agent_leftwheel_link" />
         <origin rpy="0 ${PI/2.0} ${PI/2.0}" xyz="0.0 ${(width / 2.0 + wheel_thickness / 2.0)} ${wheel_radius}" />
         <axis xyz="9.00000000e-05   9.00000000e-05   1.00000000e+00" />
         <limit effort="100" lower="0" upper="0" velocity="10" />
     </joint>
-    <link name="course_agv__left_wheel">
+    <link name="agent_leftwheel_link">
         <inertial>
             <mass value="${wheel_mass}" />
             <origin rpy="0 0 0" xyz="0 0 0" />
@@ -60,12 +60,12 @@
     <!-- right wheel -->
     <joint name="agent_rightwheel_joint" type="continuous">
         <parent link="robot_base" />
-        <child link="course_agv__right_wheel" />
+        <child link="agent_rightwheel_link" />
         <origin rpy="0 ${PI/2.0} ${PI/2.0}" xyz="0.0 ${-(width / 2.0 + wheel_thickness / 2.0)}  ${wheel_radius}" />
         <axis xyz="9.00000000e-05   9.00000000e-05   1.00000000e+00" />
         <limit effort="100" lower="0" upper="0" velocity="10" />
     </joint>
-    <link name="course_agv__right_wheel">
+    <link name="agent_rightwheel_link">
         <inertial>
             <mass value="${wheel_mass}" />
             <origin rpy="0 0 0" xyz="0 0 0" />
@@ -89,12 +89,12 @@
     <!-- imu -->
     <joint name="agent_imu_joint" type="fixed">
         <parent link="robot_base" />
-        <child link="course_agv__imu" />
+        <child link="agent_imu_link" />
         <origin rpy="0  0  0" xyz="0.0 0.0 ${height/2 + chassis_height}" />
         <axis xyz="0  0  0" />
         <limit effort="0" lower="0" upper="0" velocity="0" />
     </joint>
-    <link name="course_agv__imu">
+    <link name="agent_imu_link">
         <collision>
             <origin xyz="0 0 0" rpy="0 0 0" />
             <geometry>
@@ -125,7 +125,8 @@
         <inertial>
             <mass value="${mass}" />
             <origin rpy="0 0 0" xyz="0 0 0" />
-            <inertia ixx="${mass / 12.0 * (width*width+height*height)}" ixy="0" ixz="0" iyy="${mass / 12.0 * (length*length + height*height)}" iyz="0" izz="${mass / 12.0 * (width*width + length*length)}" />
+            <inertia ixx="${mass / 12.0 * (width*width+height*height)}" ixy="0" ixz="0" 
+                iyy="${mass / 12.0 * (length*length + height*height)}" iyz="0" izz="${mass / 12.0 * (width*width + length*length)}" />
         </inertial>
         <collision>
             <origin rpy="0 0 0" xyz="${-length/2 - base_to_back} 0.0 ${height / 2.0 + chassis_height}" />
