@@ -33,5 +33,6 @@
 
   <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load"/>
   <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" ns="/agent_control" args="joint_state_controller agent_leftwheel_controller agent_rightwheel_controller"/>
+  <node name="VelocityObserver" pkg="clcbs_gazebo" type="VelocityObserver.py" launch-prefix="xterm -e"/>
 
 </launch>

@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 import argparse
-from os import name
-from re import S
+import os
+import time
 import yaml
 import math
 import numpy as np
 import std_msgs.msg as std_msgs
 import geometry_msgs.msg as geometry_msgs
+import gazebo_msgs.srv as gazebo_srvs
 import rospy
 import PyKDL
 
@@ -15,17 +16,45 @@ class VelocityController:
     def __init__(self):
         self.vx, self.vw, self.step = 0.0, 0.0, 0.1
         self.vw_limit = 0.0
-        self.vmax, self.wmax = 3.0, 3.0
+        self.vmax, self.wmax = 10.0, 3.0
         self.rot_radius = 3.0
-    
-    def set_vx(self, vx):
-        self.vx = vx
+
+    def accelerate(self):
+        self.vx += self.vmax * self.step
         self.vw_limit = min(abs(self.vx) / self.rot_radius, self.wmax)
         self.limit_all()
 
-    def set_vw(self, vw):
-        self.vw = vw
+    def decelerate(self):
+        self.vx -= self.vmax * self.step
+        self.vw_limit = min(abs(self.vx) / self.rot_radius, self.wmax)
         self.limit_all()
+
+    def left_turn(self):
+        self.vw += self.step * self.vw_limit
+        self.limit_all()
+
+    def right_turn(self):
+        self.vw -= self.step * self.vw_limit
+        self.limit_all()
+    
+    def set_vx(self, vx):
+        if vx > self.vx + self.vmax * self.step:
+            self.accelerate()
+        elif vx < self.vx - self.vmax * self.step:
+            self.decelerate()
+        else:
+            self.vx = vx
+            self.vw_limit = min(abs(self.vx) / self.rot_radius, self.wmax)
+            self.limit_all()
+
+    def set_vw(self, vw):
+        if vw > self.vx + self.step * self.vw_limit:
+            self.left_turn()
+        elif vw < self.vx - self.step * self.vw_limit:
+            self.right_turn()
+        else:
+            self.vw = vw
+            self.limit_all()
 
     def reset(self):
         self.vx, self.vw = 0.0, 0.0
@@ -100,14 +129,13 @@ class PidVelocityPublisher(VelocityController):
         self.prop, self.int, self.diff = args.get(
             'prop', 10), args.get('int', 1), args.get('diff, 0')
         self.t_start = None
-        self.last_state, self.curr_state = None, None  # TODO: NOTE HERE!
         self.state_manager = StateManager(name, states)
+        self.curr_state = None
 
     def start(self):
         self.t_start = rospy.get_time()
 
     def state_update(self, msg: geometry_msgs.Pose):
-        self.last_state = self.curr_state
         rot = PyKDL.Rotation.Quaternion(msg.orientation.x, msg.orientation.y,
                                         msg.orientation.z, msg.orientation.w)
 
@@ -115,13 +143,17 @@ class PidVelocityPublisher(VelocityController):
             [msg.position.x, msg.position.y, rot.GetRPY()[2]])
 
     def spin(self):
-        rate = rospy.Rate(50)
-        while not rospy.is_shutdown():
-            if self.last_state is not None:
-                if self.t_start is None:
-                    self.start()
-                self.pub(True)
-            rate.sleep()
+        rate = rospy.Rate(20)
+        try:
+            while not rospy.is_shutdown():
+                if self.curr_state is not None:
+                    if self.t_start is None:
+                        self.start()
+                    self.pub(True)
+                rate.sleep()
+        except KeyboardInterrupt as i:
+            os.system('./reset.py')
+        
 
 
     def pub(self, verbose=True):
@@ -139,7 +171,7 @@ class PidVelocityPublisher(VelocityController):
         self.left_pub.publish(self.vx - self.vw * self.radius)
         self.right_pub.publish(self.vx + self.vw * self.radius)
         if verbose:
-            print(f'[{rospy.get_time()}]', diff_state, f"publish: {self.vx:.1f} {self.vw:.1f}", "real:", (self.curr_state - self.last_state) * 50)
+            print(f'[{rospy.get_time()}]', diff_state, f"publish: {self.vx:.1f} {self.vw:.1f}")
 
 
 if __name__ == "__main__":

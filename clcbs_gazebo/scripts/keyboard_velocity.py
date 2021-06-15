@@ -9,7 +9,7 @@ class VelocityController:
     def __init__(self):
         self.vx, self.vw, self.step = 0.0, 0.0, 0.1
         self.vw_limit = 0.0
-        self.vmax, self.wmax = 3.0, 3.0
+        self.vmax, self.wmax = 10.0, 3.0
         self.rot_radius = 3.0
 
     def accelerate(self):
@@ -68,7 +68,8 @@ class VelocityPublisher(VelocityController):
         if rospy.is_shutdown():
             exit()
         if verbose:
-            print(f"publish: vx - {self.vx:.2f} vw - {self.vw:.2f}")
+            print(f"publish: left - {self.vx - self.vw * self.radius:.2f}"
+                  f"right - {self.vx + self.vw * self.radius:.2f}")
 
     def kbd_input(self, key):
         def nop():
