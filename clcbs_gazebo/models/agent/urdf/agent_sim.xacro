@@ -10,6 +10,7 @@
     <xacro:property name="chassis_height" value="0.2" />
     <xacro:property name="caster_radius" value="${chassis_height/2}" />
     <xacro:property name="wheel_mass" value="0.5" />
+    <xacro:property name="caster_mass" value="${wheel_mass}" />
     <xacro:property name="wheel_radius" value="0.5" />
     <xacro:property name="wheel_thickness" value="${wheel_radius/3}" />
     <xacro:property name="base_to_back" value="1.0" />
@@ -95,12 +96,12 @@
     <link name="robot_chassis">
         <inertial>
             <mass value="${mass}" />
-            <origin rpy="0 0 0" xyz="0.5 0.0 0.0" /> <!-- CHANGE HERE TO SEE INFLUENCE-->
+            <origin rpy="0 0 0" xyz="${length / 2 - base_to_back} 0.0 ${height / 2.0 + chassis_height}" /> <!-- CHANGE HERE TO SEE INFLUENCE-->
             <inertia ixx="${mass / 12.0 * (width*width+height*height)}" ixy="0" ixz="0" 
                 iyy="${mass / 12.0 * (length*length + height*height)}" iyz="0" izz="${mass / 12.0 * (width*width + length*length)}" />
         </inertial>
         <collision>
-            <origin rpy="0 0 0" xyz="${length/2 + base_to_back} 0.0 ${height / 2.0 + chassis_height}" />
+            <origin rpy="0 0 0" xyz="${length / 2 - base_to_back} 0.0 ${height / 2.0 + chassis_height}" />
             <geometry>
                 <box size="${length} ${width} ${height}" />
             </geometry>
@@ -112,6 +113,12 @@
             </geometry>
             <material name="yellow" />
         </visual>
+        <inertial>
+            <mass value="${caster_mass}" />
+            <origin rpy="0 0 0" xyz="${base_to_caster} ${width / 2 - caster_radius} ${caster_radius}" />
+            <inertia ixx="${2.0 / 5.0 * mass * caster_radius * caster_radius}" ixy="0" ixz="0" 
+                iyy="${2.0 / 5.0 * mass * caster_radius * caster_radius}" iyz="0" izz="${2.0 / 5.0 * mass * caster_radius * caster_radius}" />
+        </inertial>
         <collision>
             <origin rpy="0 0 0" xyz="${base_to_caster} ${width / 2 - caster_radius} ${caster_radius}" />
             <geometry>
@@ -125,6 +132,12 @@
             </geometry>
             <material name="yellow" />
         </visual>
+        <inertial>
+            <mass value="${caster_mass}" />
+            <origin rpy="0 0 0" xyz="${base_to_caster} ${-width / 2 - caster_radius} ${caster_radius}" />
+            <inertia ixx="${2.0 / 5.0 * mass * caster_radius * caster_radius}" ixy="0" ixz="0" 
+                iyy="${2.0 / 5.0 * mass * caster_radius * caster_radius}" iyz="0" izz="${2.0 / 5.0 * mass * caster_radius * caster_radius}" />
+        </inertial>
         <collision>
             <origin rpy="0 0 0" xyz="${base_to_caster} ${-width / 2 + caster_radius} ${caster_radius}" />
             <geometry>

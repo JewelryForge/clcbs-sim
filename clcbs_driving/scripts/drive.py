@@ -48,9 +48,9 @@ class VelocityController:
             self.limit_all()
 
     def set_vw(self, vw):
-        if vw > self.vx + self.step * self.vw_limit:
+        if vw > self.vw + self.step * self.vw_limit:
             self.left_turn()
-        elif vw < self.vx - self.step * self.vw_limit:
+        elif vw < self.vw - self.step * self.vw_limit:
             self.right_turn()
         else:
             self.vw = vw
@@ -168,15 +168,18 @@ class PidVelocityPublisher(VelocityController):
         dv = dx / math.cos(desired_state[2])
         # print('desired', dx, dy, dyaw, end='')
         diff_state = desired_state - self.curr_state
+        if diff_state[2] < -math.pi:
+            diff_state += 2 * math.pi
+        elif diff_state[2] > math.pi:
+            diff_state -= 2 * math.pi
         yaw = self.curr_state[2]
-        self.set_vx(dv + 5 * (diff_state[0] * math.cos(yaw) + diff_state[1] * math.sin(yaw))) # change to continuous
-        self.set_vw(angle_diff(diff_state[2], yaw) + dyaw)
-        #  +                    angle_diff(desired_state[2], self.curr_state[2])) + dyaw)
+        self.set_vx(2 * (diff_state[0] * math.cos(yaw) + diff_state[1] * math.sin(yaw))) # change to continuous
+        self.set_vw(angle_diff(desired_state[2], self.curr_state[2]))
         
         self.left_pub.publish(self.vx - self.vw * self.radius)
         self.right_pub.publish(self.vx + self.vw * self.radius)
         if verbose:
-            print(f'[{rospy.get_time()}]', diff_state, f"publish: {self.vx:.1f} {self.vw:.1f}")
+            print(f'[{rospy.get_time()}]', diff_state, f"publish: {self.vx:.1f} {self.vw:.1f}", f'ad{angle_diff(desired_state[2], self.curr_state[2]) / math.pi * 180:.2f}')
 
 
 if __name__ == "__main__":
