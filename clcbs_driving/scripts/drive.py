@@ -108,13 +108,15 @@ class StateManager:
             final_state = self.states[-1]
             return np.array([final_state['x'], final_state['y'], final_state['yaw']])
 
+def angle_norm(a):
+    if a > 2 * math.pi:
+        return angle_norm(a - 2 * math.pi)
+    if a <= 2 * math.pi:
+        return angle_norm(a + 2 * math.pi)
+    return a
+
 def angle_diff(a1, a2):
-    res = a1 - a2
-    if res > math.pi:
-        return res - 2 * math.pi
-    if res < -math.pi:
-        return res + 2 * math.pi
-    return res
+    return angle_norm(a1 - a2)
     
 class PidVelocityPublisher(VelocityController):
     def __init__(self, name, states, **args):
@@ -152,7 +154,7 @@ class PidVelocityPublisher(VelocityController):
                         self.start()
                     self.pub(True)
                 rate.sleep()
-        except KeyboardInterrupt as i:
+        except KeyboardInterrupt:
             os.system('./reset.py')
         
 
@@ -168,18 +170,14 @@ class PidVelocityPublisher(VelocityController):
         dv = dx / math.cos(desired_state[2])
         # print('desired', dx, dy, dyaw, end='')
         diff_state = desired_state - self.curr_state
-        if diff_state[2] < -math.pi:
-            diff_state += 2 * math.pi
-        elif diff_state[2] > math.pi:
-            diff_state -= 2 * math.pi
         yaw = self.curr_state[2]
-        self.set_vx(2 * (diff_state[0] * math.cos(yaw) + diff_state[1] * math.sin(yaw))) # change to continuous
+        self.set_vx(2 * (diff_state[0] * math.cos(yaw) + diff_state[1] * math.sin(yaw))) # 反馈控制法
         self.set_vw(angle_diff(desired_state[2], self.curr_state[2]))
         
         self.left_pub.publish(self.vx - self.vw * self.radius)
         self.right_pub.publish(self.vx + self.vw * self.radius)
         if verbose:
-            print(f'[{rospy.get_time()}]', diff_state, f"publish: {self.vx:.1f} {self.vw:.1f}", f'ad{angle_diff(desired_state[2], self.curr_state[2]) / math.pi * 180:.2f}')
+            print(f'[{rospy.get_time()}]', diff_state, f"publish: {self.vx:.1f} {self.vw:.1f}")
 
 
 if __name__ == "__main__":
