@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import argparse
 import os
-import time
 import yaml
 import math
 import numpy as np
@@ -10,6 +9,7 @@ import geometry_msgs.msg as geometry_msgs
 import gazebo_msgs.srv as gazebo_srvs
 import rospy
 import PyKDL
+import tf
 
 
 class VelocityController:
@@ -125,6 +125,7 @@ class PidVelocityPublisher(VelocityController):
                                          std_msgs.Float64, queue_size=1)
         self.state_sub = rospy.Subscriber('/agent_states/agent1_robot_base', geometry_msgs.Pose,
                                           callback=self.state_update)
+        self.tf_pub = tf.TransformBroadcaster()
         self.radius = (2 + 0.5 / 3) / 2
         self.prop, self.int, self.diff = args.get(
             'prop', 10), args.get('int', 1), args.get('diff, 0')
@@ -159,6 +160,10 @@ class PidVelocityPublisher(VelocityController):
     def pub(self, verbose=True):
         diff_time = rospy.get_time() - self.t_start
         desired_state = self.state_manager.get_state(diff_time)
+        des_x, des_y, des_yaw = desired_state
+        self.tf_pub.sendTransform([des_x, des_y, 0],  PyKDL.Rotation.RotZ(des_yaw).GetQuaternion(),
+                                  rospy.Time.now(), "desired_state", "map")
+
         dx, dy, dyaw = (self.state_manager.get_state(diff_time + 0.1) - self.state_manager.get_state(diff_time)) / 0.1
         dv = dx / math.cos(desired_state[2])
         # print('desired', dx, dy, dyaw, end='')

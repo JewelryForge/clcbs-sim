@@ -43,7 +43,6 @@ class GazeboLinkPose:
 
 if __name__ == '__main__':
     try:
-
         rospy.init_node('robot_pose_tf_publisher')
         parser = argparse.ArgumentParser(description='Receive transforms from gazebo and send tf')
         parser.add_argument('-r', type=str, required=True)

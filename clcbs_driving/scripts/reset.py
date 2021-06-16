@@ -8,13 +8,6 @@ import gazebo_msgs.srv as gazebo_srvs
 import rospy
 import PyKDL
 
-class IsStatic:
-    def __init__(self) -> None:
-        self.prev_state, self.curr_state = None, None
-
-    
-
-
 if __name__ == "__main__":
     rospy.init_node('reset')
     prev_state, curr_state = None, None
