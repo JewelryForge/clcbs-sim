@@ -8,11 +8,13 @@ void VelocityController::restrain() {
   vx_ = std::max(std::min(vx_, vx_max_), -vx_max_);
   vw_ = std::max(std::min(vw_, vw_max_), -vw_max_);
 }
+
 void VelocityController::acc() {
   vx_ += vx_max_ * step_;
   restrain();
   updateVWMax();
 }
+
 void VelocityController::dec() {
   vx_ -= vx_max_ * step_;
   restrain();
@@ -61,3 +63,15 @@ void VelocityController::reset() {
   std::tie(vx_, vw_, vw_max_) = std::make_tuple(0.0, 0.0, 0.0);
 }
 
+void PID::set_param(double Kp, double Ki, double Kd) {
+  std::tie(Kp_, Ki_, Kd_) = std::tie(Kp_, Ki, Kd);
+}
+
+double PID::operator()() const {
+  static double u_p1 = 0.0, e_p1 = 0.0, e_p2 = 0.0;
+  double e = set_point_ - variable_;
+  double du = Kp_ * (e - e_p1) + Ki_ * e + Kd_ * (e - 2 * e_p1 + e_p2);
+  double u = u_p1 + du;
+  std::tie(u_p1, e_p1, e_p2) = std::make_tuple(u, e, e_p1);
+  return u;
+}
