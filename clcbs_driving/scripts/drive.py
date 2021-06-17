@@ -111,7 +111,7 @@ class StateManager:
 def angle_norm(a):
     if a > 2 * math.pi:
         return angle_norm(a - 2 * math.pi)
-    if a <= 2 * math.pi:
+    if a <= -2 * math.pi:
         return angle_norm(a + 2 * math.pi)
     return a
 
