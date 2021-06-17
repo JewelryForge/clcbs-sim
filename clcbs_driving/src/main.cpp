@@ -1,11 +1,14 @@
-#include "VelocityController.h"
+#include "CarModel.h"
 #include <iostream>
+#include "PID.hpp"
+#include "Angle.h"
 using namespace std;
 
 int main() {
-  double a = 0, b = 1;
-  auto pid = PID(a, b);
-  pid.set_param(2.0, 1.0);
+  auto a = Angle(0), b = Angle(1);
+
+  auto pid = PID<Angle>(a, b);
+  pid.set_param(1.0, 0.5);
   cout << pid() << endl;
   a = 0.1;
   cout << pid() << endl;

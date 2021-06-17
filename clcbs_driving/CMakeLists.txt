@@ -23,7 +23,6 @@ include_directories(
         ${EIGEN3_INCLUDE_DIR}
 )
 
-add_library(lib src/VelocityController.cpp include/VelocityController.h)
-
-add_executable(clcbs_driving src/main.cpp src/VelocityController.cpp include/VelocityController.h)
+add_library(lib src/CarModel.cpp include/CarModel.h)
+add_executable(clcbs_driving src/main.cpp src/CarModel.cpp include/CarModel.h src/Angle.cpp include/Angle.h include/PID.hpp)
 target_link_libraries(clcbs_driving lib ${catkin_LIBRARIES})
