@@ -1,0 +1,6 @@
+<launch>
+    <arg name="map_file" default="/home/jewelry/catkin_ws/CLCBS/src/clcbs_gazebo/models/agent/config/map_50by50_obst25_agents5_ex37.yaml" />
+    <group ns="config">
+      <rosparam file="$(arg map_file)" command="load" />
+    </group>
+</launch>

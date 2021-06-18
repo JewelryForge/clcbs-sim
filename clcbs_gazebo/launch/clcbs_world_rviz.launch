@@ -1,10 +1,7 @@
 <launch>
-    <arg name="map_file" default="$(find clcbs_gazebo)/models/heightmap/map.yaml"/>
+    <arg name="map_yaml" default="$(find clcbs_gazebo)/models/heightmap/map.yaml"/>
     <!-- Run the map server -->
-    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
-
-    <param name="robot_name" type="str" value="agent1" />
-    <param name="link_name" type="str" value="robot_base" />
+    <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_yaml)" />
 
     <node pkg="tf" type="static_transform_publisher" name="map_tf" args="0 0 0 0 0 0 world_base map 100" />
 
