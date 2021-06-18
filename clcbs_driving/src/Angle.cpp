@@ -1,3 +1,5 @@
+#include <iomanip>
+#include <cmath>
 #include "Angle.h"
 
 Angle::Angle(double angle) : angle_(angle) {
@@ -48,7 +50,7 @@ Angle Angle::operator/=(double p) {
   return *this;
 }
 std::ostream &operator<<(std::ostream &os, const Angle &a) {
-  return os << a.angle_;
+  return os << std::setprecision(3) << a.angle_;
 }
 Angle::operator double() const {
   return angle_;

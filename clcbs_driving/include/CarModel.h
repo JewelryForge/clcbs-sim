@@ -1,5 +1,6 @@
 #ifndef CLCBS_DRIVING_INCLUDE_CARMODEL_H_
 #define CLCBS_DRIVING_INCLUDE_CARMODEL_H_
+#include <tuple>
 
 class CarModel {
  public:
@@ -11,6 +12,7 @@ class CarModel {
   void set_vx(double vx);
   void set_vw(double vw);
   void reset();
+  std::pair<double, double> getVelocity() const;
  private:
   void updateVWMax();
   void restrain();

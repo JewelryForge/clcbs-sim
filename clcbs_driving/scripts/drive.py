@@ -15,7 +15,7 @@ import tf
 class VelocityController:
     def __init__(self):
         self.vx, self.vw, self.step = 0.0, 0.0, 0.1
-        self.vw_limit = 0.0
+        self.vw_limit = 3.0
         self.vmax, self.wmax = 10.0, 3.0
         self.rot_radius = 3.0
 
@@ -103,15 +103,16 @@ class StateManager:
             dt = next_state['t'] - last_state['t']
             ratio = (t - last_state['t']) / dt
             interp = (next_pos - last_pos) * ratio + last_pos
+            interp[2] = angle_norm(interp[2])
             return interp
         else:
             final_state = self.states[-1]
             return np.array([final_state['x'], final_state['y'], final_state['yaw']])
 
 def angle_norm(a):
-    if a > 2 * math.pi:
+    if a > math.pi:
         return angle_norm(a - 2 * math.pi)
-    if a <= -2 * math.pi:
+    if a <= -math.pi:
         return angle_norm(a + 2 * math.pi)
     return a
 
@@ -162,6 +163,7 @@ class PidVelocityPublisher(VelocityController):
     def pub(self, verbose=True):
         diff_time = rospy.get_time() - self.t_start
         desired_state = self.state_manager.get_state(diff_time)
+        desired_state[2] *= -1
         des_x, des_y, des_yaw = desired_state
         self.tf_pub.sendTransform([des_x, des_y, 0],  PyKDL.Rotation.RotZ(des_yaw).GetQuaternion(),
                                   rospy.Time.now(), "desired_state", "map")
@@ -170,14 +172,17 @@ class PidVelocityPublisher(VelocityController):
         dv = dx / math.cos(desired_state[2])
         # print('desired', dx, dy, dyaw, end='')
         diff_state = desired_state - self.curr_state
-        yaw = self.curr_state[2]
-        self.set_vx(2 * (diff_state[0] * math.cos(yaw) + diff_state[1] * math.sin(yaw))) # 反馈控制法
-        self.set_vw(angle_diff(desired_state[2], self.curr_state[2]))
+        rho =  math.hypot(diff_state[0], diff_state[1])
+        beta = math.atan2(diff_state[1], diff_state[0])
+        alpha = angle_diff(beta, self.curr_state[2])
+        # yaw = self.curr_state[2]
+        self.set_vx(5 * rho) # 反馈控制法
+        self.set_vw(8 * alpha)
         
         self.left_pub.publish(self.vx - self.vw * self.radius)
         self.right_pub.publish(self.vx + self.vw * self.radius)
         if verbose:
-            print(f'[{rospy.get_time()}]', diff_state, f"publish: {self.vx:.1f} {self.vw:.1f}")
+            print(f'[{rospy.get_time()}]', rho, alpha, f"publish: {self.vx:.1f} {self.vw:.1f}")
 
 
 if __name__ == "__main__":

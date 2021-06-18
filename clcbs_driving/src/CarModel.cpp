@@ -56,11 +56,13 @@ void CarModel::set_vw(double vw) {
     vw_ = vw;
     restrain();
   }
-
 }
 
 void CarModel::reset() {
   std::tie(vx_, vw_, vw_max_) = std::make_tuple(0.0, 0.0, 0.0);
+}
+std::pair<double, double> CarModel::getVelocity() const {
+  return {vx_ - vw_ * rot_radius_, vx_ + vw_ * rot_radius_};
 }
 
 

@@ -1,11 +1,6 @@
-//
-// Created by jewelry on 17/06/2021.
-//
-
 #ifndef CLCBS_DRIVING_INCLUDE_ANGLE_H_
 #define CLCBS_DRIVING_INCLUDE_ANGLE_H_
 
-#include <cmath>
 #include <iostream>
 
 class Angle {
