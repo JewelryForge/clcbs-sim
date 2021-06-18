@@ -18,21 +18,50 @@
     <arg name="headless" value="$(arg headless)" />
   </include>
 
-  <arg name="model_src" value='$(find clcbs_gazebo)/models' />
+  <arg name="ns_1" value="agent1" />
+  <arg name="ns_2" value="agent2" />
+  <arg name="ns_3" value="agent3" />
+  <arg name="ns_4" value="agent4" />
+  <arg name="ns_5" value="agent5" />
 
-  <!-- <group ns='agent1'> -->
-    <param name="robot_description" command="$(find xacro)/xacro --inorder '$(arg model_src)/agent/urdf/agent_sim.xacro'" />
-    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model agent1 -param robot_description -x -11 -y 14" />
-    <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
-    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" output="screen" />
-  <!-- </group> -->
+  <arg name="robot_description" default="$(find clcbs_gazebo)/models/agent/urdf/agent_sim.xacro" />
+  <param name="/robot_description" command="$(find xacro)/xacro --inorder $(arg robot_description)" />
 
-  <include file="$(find clcbs_gazebo)/launch/clcbs_world_rviz.launch" />
+  <group ns="$(arg ns_1)">
+    <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_1) -param /robot_description -x 10 -y 14" />
+    <node pkg="clcbs_gazebo" type="robot_tf.py" name="robot_base_tf_publisher" args="-r $(arg ns_1) -l robot_base"/>
+  </group>
+
+  <group ns="$(arg ns_2)">
+    <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_2) -param /robot_description -x 5 -y 14" />
+    <node pkg="clcbs_gazebo" type="robot_tf.py" name="robot_base_tf_publisher" args="-r $(arg ns_2) -l robot_base"/>
+  </group>
+
+  <group ns="$(arg ns_3)">
+    <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_3) -param /robot_description -x 0 -y 14" />
+    <node pkg="clcbs_gazebo" type="robot_tf.py" name="robot_base_tf_publisher" args="-r $(arg ns_3) -l robot_base"/>
+  </group>
+
+  <group ns="$(arg ns_4)">
+    <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_4) -param /robot_description -x -5 -y 14" />
+    <node pkg="clcbs_gazebo" type="robot_tf.py" name="robot_base_tf_publisher" args="-r $(arg ns_4) -l robot_base"/>
+  </group>
+
+  <group ns="$(arg ns_5)">
+    <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
+    <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_5) -param /robot_description -x -10 -y 14" />
+    <node pkg="clcbs_gazebo" type="robot_tf.py" name="robot_base_tf_publisher" args="-r $(arg ns_5) -l robot_base"/>
+  </group>
+  
+  <!-- <include file="$(find clcbs_gazebo)/launch/clcbs_world_rviz.launch" /> -->
 
   <!-- <node pkg="clcbs_gazebo" type="keyboard_velocity.py" name="keyboard_terminal" output="screen" launch-prefix="xterm -e" /> -->
 
-  <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load"/>
-  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" ns="/agent_control" args="joint_state_controller agent_leftwheel_controller agent_rightwheel_controller"/>
-  <node name="VelocityObserver" pkg="clcbs_gazebo" type="VelocityObserver.py" launch-prefix="xterm -e"/>
+  <!-- <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" ns="/agent_control" args="joint_state_controller agent_leftwheel_controller agent_rightwheel_controller"/> -->
+  <!-- <node name="VelocityObserver" pkg="clcbs_gazebo" type="VelocityObserver.py" launch-prefix="xterm -e"/> -->
 
 </launch>

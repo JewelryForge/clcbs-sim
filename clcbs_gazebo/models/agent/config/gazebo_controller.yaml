@@ -1,18 +1,17 @@
-agent_control:
-  # Publish all joint states -----------------------------------
-  joint_state_controller:
-    type: joint_state_controller/JointStateController
-    publish_rate: 100
+# Publish all joint states -----------------------------------
+joint_state_controller:
+  type: joint_state_controller/JointStateController
+  publish_rate: 100
 
-  # Position Controllers ---------------------------------------
-  agent_leftwheel_controller:
-    type: velocity_controllers/JointVelocityController
-    joint: agent_leftwheel_joint
-    # pid: {p: 100.0, i: 0.01, d: 10.0}
-  agent_rightwheel_controller:
-    type: velocity_controllers/JointVelocityController
-    joint: agent_rightwheel_joint
-    # pid: {p: 100.0, i: 0.01, d: 10.0}
-  gazebo_ros_control/pid_gains:
-    agent_leftwheel_joint: {p: 100.0, i: 5.0, d: 0.0}
-    agent_rightwheel_joint: {p: 100.0, i: 5.0, d: 0.0}
+# Position Controllers ---------------------------------------
+agent_leftwheel_controller:
+  type: velocity_controllers/JointVelocityController
+  joint: agent_leftwheel_joint
+  # pid: {p: 100.0, i: 0.01, d: 10.0}
+agent_rightwheel_controller:
+  type: velocity_controllers/JointVelocityController
+  joint: agent_rightwheel_joint
+  # pid: {p: 100.0, i: 0.01, d: 10.0}
+gazebo_ros_control/pid_gains:
+  agent_leftwheel_joint: {p: 100.0, i: 5.0, d: 0.0}
+  agent_rightwheel_joint: {p: 100.0, i: 5.0, d: 0.0}
