@@ -36,7 +36,7 @@ class GazeboLinkPose:
         rotation = [o.x, o.y, o.z, o.w]
         if abs(math.hypot(*rotation) - 1) > 0.01:
             rotation = [0, 0, 0, 1]
-        self.tf_pub.sendTransform(translation, rotation, rospy.Time.now(), self.link_name, "map")
+        self.tf_pub.sendTransform(translation, rotation, rospy.Time.now(), self.robot_name + '_' +self.link_name, "map")
         print('tf published')
 
 
