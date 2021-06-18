@@ -1,5 +1,5 @@
 #include "CarModel.h"
-#include "FeedbackContoller.h"
+#include "FeedbackController.h"
 #include <iostream>
 #include "PID.hpp"
 #include "Angle.h"
@@ -8,22 +8,10 @@
 #include "csignal"
 #include "ctime"
 #include "yaml-cpp/yaml.h"
+#include "StateManager.h"
 using namespace std;
-template<typename T>
-std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
-  if (v.empty()) return os << "[]";
-  os << '[' << v.front();
-  for (auto iter = v.begin() + 1; iter != v.end(); ++iter) {
-    os << '\t' << *iter;
-  }
-  return os << ']';
-}
-template<typename T1, typename T2>
-std::ostream &operator<<(std::ostream &os, const std::pair<T1, T2> &p) {
-  return os << '<' << p.first << ", " << p.second << '>';
-}
 
-int main() {
+int main(int argc, char **argv) {
   YAML::Node config;
   std::string file("/home/jewelry/catkin_ws/CLCBS/src/clcbs_driving/output.yaml");
   config = YAML::LoadFile(file);
@@ -33,6 +21,8 @@ int main() {
     t_states.emplace_back(s["t"].as<double>(),
                           State(s["x"].as<double>(), s["y"].as<double>(), -s["yaw"].as<double>()));
   }
-  cout << t_states << endl;
-//  FeedbackContoller();
+  ros::init(argc, argv, "CPP_TEST");
+  ros::NodeHandle nh;
+  auto publisher = FeedbackController(nh, "agent0", t_states);
+  publisher.spin();
 }

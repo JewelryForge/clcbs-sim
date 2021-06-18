@@ -4,21 +4,16 @@
 
 class CarModel {
  public:
-  CarModel();
-  void acc();
-  void dec();
-  void ltn();
-  void rtn();
-  void set_vx(double vx);
-  void set_vw(double vw);
+  explicit CarModel(double min_rot_radius = 3.0);
+  void setThr(double thr);
+  void setOrt(double ort);
   void reset();
+  double vx() const;
+  double vw() const;
   std::pair<double, double> getVelocity() const;
  private:
-  void updateVWMax();
-  void restrain();
-  double vx_{0.0}, vw_{0.0};
-  double step_, rot_radius_;
-  double vx_max_, vw_max_{0.0};
+  double thr_{0.}, ort_{0.};
+  double vx_max_{3.}, step_, rot_radius_, width_;
 };
 
 

@@ -2,67 +2,35 @@
 #include <iostream>
 #include <tuple>
 
-CarModel::CarModel() : step_(0.1), vx_max_(10.0), rot_radius_(3.0) {}
+CarModel::CarModel(double min_rot_radius) : step_(1.0), vx_max_(10.0), rot_radius_(min_rot_radius), width_(1.0) {}
 
-void CarModel::restrain() {
-  vx_ = std::max(std::min(vx_, vx_max_), -vx_max_);
-  vw_ = std::max(std::min(vw_, vw_max_), -vw_max_);
+void CarModel::setThr(double thr) {
+  if (thr > thr_ + vx_max_ * step_) thr_ += step_;
+  else if (thr < thr_ - vx_max_ * step_) thr_ -= step_;
+  else thr_ = thr;
+  thr_ = std::max(std::min(thr_, 1.0), -1.0);
 }
 
-void CarModel::acc() {
-  vx_ += vx_max_ * step_;
-  restrain();
-  updateVWMax();
-}
-
-void CarModel::dec() {
-  vx_ -= vx_max_ * step_;
-  restrain();
-  updateVWMax();
-}
-
-void CarModel::updateVWMax() {
-  vw_max_ = std::abs(vx_) / rot_radius_;
-}
-
-void CarModel::ltn() {
-  vw_ += vw_max_ * step_;
-  restrain();
-}
-
-void CarModel::rtn() {
-  vw_ -= vw_max_ * step_;
-  restrain();
-}
-
-void CarModel::set_vx(double vx) {
-  if (vx > vx_ + vx_max_ * step_) {
-    acc();
-  } else if (vx < vx_ - vx_max_ * step_) {
-    dec();
-  } else {
-    vx_ = vx;
-    updateVWMax();
-    restrain();
-  }
-}
-
-void CarModel::set_vw(double vw) {
-  if (vw > vw_ + vw_max_ * step_) {
-    ltn();
-  } else if (vw < vw_ - vw_max_ * step_) {
-    rtn();
-  } else {
-    vw_ = vw;
-    restrain();
-  }
+void CarModel::setOrt(double ort) {
+  if (ort > ort_ * step_) ort_ += step_;
+  else if (ort < ort_ * step_) ort_ -= step_;
+  else ort_ = ort;
+  ort_ = std::max(std::min(ort_, 1.0), -1.0);
 }
 
 void CarModel::reset() {
-  std::tie(vx_, vw_, vw_max_) = std::make_tuple(0.0, 0.0, 0.0);
+  setThr(0);
+  setOrt(0);
 }
+
+double CarModel::vx() const {
+  return thr_ * vx_max_;
+}
+
+double CarModel::vw() const {
+  return ort_ * vx() / rot_radius_;
+}
+
 std::pair<double, double> CarModel::getVelocity() const {
-  return {vx_ - vw_ * rot_radius_, vx_ + vw_ * rot_radius_};
+  return {vx() - vw() * width_ / 2, vx() + vw() * width_ / 2};
 }
-
-

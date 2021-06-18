@@ -29,20 +29,21 @@
 //  return u;
 //}
 //
-//class PID {
-// public:
-//  explicit PID(double Kp, double Ki = 0, double Kd = 0) : Kp_(Kp), Ki_(Ki), Kd_(Kd) {}
-//  double operator()(double variable, double set_point) const;
-// private:
-//  double Kp_, Ki_, Kd_;
-//};
+class PID {
+ public:
+  explicit PID(double Kp, double Ki = 0, double Kd = 0) : Kp_(Kp), Ki_(Ki), Kd_(Kd) {}
+  double operator()(double e) const;
+ private:
+  double Kp_, Ki_, Kd_;
+};
 
-//double PID::operator()(double variable, double set_point) const {
-//  static double u_p1 = 0.0, e_p1 = 0.0, e_p2 = 0.0;
-//  double e = set_point - variable;
-//  double du = Kp_ * (e - e_p1) + Ki_ * e + Kd_ * (e - 2 * e_p1 + e_p2);
-//  double u = u_p1 + du;
-//  std::tie(u_p1, e_p1, e_p2) = std::make_tuple(u, e, e_p1);
-//  return u;
-//}
+
+double PID::operator()(double e) const {
+  static double u_p1 = 0.0, e_p1 = 0.0, e_p2 = 0.0;
+  double du = Kp_ * (e - e_p1) + Ki_ * e + Kd_ * (e - 2 * e_p1 + e_p2);
+  double u = u_p1 + du;
+  std::tie(u_p1, e_p1, e_p2) = std::make_tuple(u, e, e_p1);
+  return u;
+}
+
 #endif //CLCBS_DRIVING_INCLUDE_PID_HPP_

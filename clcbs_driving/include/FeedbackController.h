@@ -1,5 +1,5 @@
-#ifndef CLCBS_DRIVING_INCLUDE_FEEDBACKCONTOLLER_H_
-#define CLCBS_DRIVING_INCLUDE_FEEDBACKCONTOLLER_H_
+#ifndef CLCBS_DRIVING_INCLUDE_FEEDBACKCONTROLLER_H_
+#define CLCBS_DRIVING_INCLUDE_FEEDBACKCONTROLLER_H_
 
 #include <memory>
 #include <utility>
@@ -10,11 +10,11 @@
 #include "StateManager.h"
 #include "CarModel.h"
 
-class FeedbackContoller {
+class FeedbackController {
  public:
-  FeedbackContoller(std::string name, std::vector<std::pair<double, State>> states, int argc, char **argv);
+  FeedbackController(ros::NodeHandle &nh, std::string name, std::vector<std::pair<double, State>> states);
   void start();
-  void stateUpdate(geometry_msgs::Pose::ConstPtr p);
+  void stateUpdate(const geometry_msgs::Pose::ConstPtr& p);
   void spin();
   void publishOnce();
   static void reset(int);
@@ -32,4 +32,4 @@ class FeedbackContoller {
   CarModel model_;
 };
 
-#endif //CLCBS_DRIVING_INCLUDE_FEEDBACKCONTOLLER_H_
+#endif //CLCBS_DRIVING_INCLUDE_FEEDBACKCONTROLLER_H_

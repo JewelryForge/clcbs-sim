@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iomanip>
 #include <utility>
+#include <cmath>
 
 State::State(double x, double y, Angle yaw) : x(x), y(y), yaw(yaw) {}
 State operator+(const State &s1, const State &s2) {
@@ -25,24 +26,25 @@ std::ostream &operator<<(std::ostream &os, const State &s) {
 State State::interp(const State &s1, const State &s2, double ratio) {
   return {s1.x + (s2.x - s1.x) * ratio, s1.y + (s2.y - s1.y) * ratio, s1.yaw + (s2.yaw - s1.yaw) * ratio};
 }
+double State::norm() const {
+  return std::hypot(x, y);
+}
 
 StateManager::StateManager(std::string name, std::vector<std::pair<double, State>> states)
     : name_(std::move(name)), states_(std::move(states)), align([](const State &s) { return s; }) {
-  assert(!states.empty() and states.front().first == 0);
+  assert(!states_.empty() and states_.front().first == 0);
+  std::cout << states_ << std::endl;
 }
 void StateManager::setAlignmentParam(double x, double y) {
-  align = [=](const State &s) { return State(s.x - x, s.y - y, s.yaw); };
+  align = [=](const State &s) { return State(s.x + x, s.y + y, s.yaw); };
 }
 State StateManager::operator()(double t) {
   return align(getState(t));
 }
 State StateManager::getState(double t) {
-  if (t < 1) {
+  if (t <= 0) {
     return states_.front().second;
-  } else if (t >= states_.back().first + 1) {
-    return states_.back().second;
-  } else {
-    states_.front().second;
+  } else if (t <= states_.back().first) {
     for (auto iter = states_.begin(); iter != states_.end(); ++iter) {
       if (iter->first < t) continue;
       auto s_p = iter - 1, s_n = iter;
@@ -50,4 +52,7 @@ State StateManager::getState(double t) {
       return State::interp(s_p->second, s_n->second, ratio);
     }
   }
+  finished = true;
+  return states_.back().second;
 }
+
