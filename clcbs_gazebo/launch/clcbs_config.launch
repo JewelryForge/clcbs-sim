@@ -10,7 +10,6 @@
     <group ns="$(arg ns_0)">
        <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_0) -param /robot_description -x -11.0 -y 14.0 -Y 0" />
-       <node pkg="clcbs_gazebo" type="robot_tf.py" name="robot_base_tf_publisher" args="-r $(arg ns_0) -l robot_base" />
        <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller left_wheel_controller right_wheel_controller" />
     </group>
 
@@ -18,7 +17,6 @@
     <group ns="$(arg ns_1)">
        <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_1) -param /robot_description -x 2.0 -y -23.0 -Y 1.57" />
-       <node pkg="clcbs_gazebo" type="robot_tf.py" name="robot_base_tf_publisher" args="-r $(arg ns_1) -l robot_base" />
        <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller left_wheel_controller right_wheel_controller" />
     </group>
 
@@ -26,7 +24,6 @@
     <group ns="$(arg ns_2)">
        <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_2) -param /robot_description -x 16.0 -y 18.0 -Y -1.57" />
-       <node pkg="clcbs_gazebo" type="robot_tf.py" name="robot_base_tf_publisher" args="-r $(arg ns_2) -l robot_base" />
        <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller left_wheel_controller right_wheel_controller" />
     </group>
 
@@ -34,7 +31,6 @@
     <group ns="$(arg ns_3)">
        <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_3) -param /robot_description -x -13.0 -y -6.0 -Y 3.14" />
-       <node pkg="clcbs_gazebo" type="robot_tf.py" name="robot_base_tf_publisher" args="-r $(arg ns_3) -l robot_base" />
        <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller left_wheel_controller right_wheel_controller" />
     </group>
 
@@ -42,8 +38,8 @@
     <group ns="$(arg ns_4)">
        <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
        <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_4) -param /robot_description -x -12.0 -y 21.0 -Y 0" />
-       <node pkg="clcbs_gazebo" type="robot_tf.py" name="robot_base_tf_publisher" args="-r $(arg ns_4) -l robot_base" />
        <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller left_wheel_controller right_wheel_controller" />
     </group>
 
+    <node pkg="clcbs_gazebo" type="state_publisher.py" name="robot_base_tf_publisher" args="agent0/robot_base agent1/robot_base agent2/robot_base agent3/robot_base agent4/robot_base" />
 </launch>

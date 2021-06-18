@@ -33,7 +33,9 @@ if __name__ == '__main__':
             f'    <arg name="robot_description" default="$(find clcbs_gazebo)/models/agent/urdf/agent_sim.xacro" />\n'
             f'    <param name="/robot_description" command="$(find xacro)/xacro $(arg robot_description)" />\n\n'
         )
+        state_args = []
         for i, agent in enumerate(agents):
+            state_args.append(f'agent{i}/robot_base')
             start_state = agent['start']
             x, y, yaw = start_state[0] - map_size[0] / 2, start_state[1] - map_size[1] / 2, start_state[2]
             of.write(
@@ -41,11 +43,11 @@ if __name__ == '__main__':
                 f'    <group ns="$(arg ns_{i})">\n'
                 f'       <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />\n'
                 f'       <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_{i}) -param /robot_description -x {x} -y {y} -Y {yaw}" />\n'
-                f'       <node pkg="clcbs_gazebo" type="robot_tf.py" name="robot_base_tf_publisher" args="-r $(arg ns_{i}) -l robot_base" />\n'
                 f'       <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller left_wheel_controller right_wheel_controller" />\n'
                 f'    </group>\n\n'
             )
 
         of.write(
-            '</launch>\n'
+            f'    <node pkg="clcbs_gazebo" type="state_publisher.py" name="robot_base_tf_publisher" args="{" ".join(state_args)}" />\n'
+            f'</launch>\n'
         )
