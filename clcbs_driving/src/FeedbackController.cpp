@@ -12,7 +12,7 @@
 FeedbackController::FeedbackController(ros::NodeHandle &nh,
                                        std::string name,
                                        std::vector<std::pair<double, State>> states)
-    : state_manager_(std::move(name), std::move(states)) {
+    : state_manager_(std::move(name), std::move(states)), model_(1.5) {
   left_pub_ = nh_.advertise<std_msgs::Float64>("/agent_control/agent_leftwheel_controller/command", 1);
   right_pub_ = nh_.advertise<std_msgs::Float64>("/agent_control/agent_rightwheel_controller/command", 1);
   state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/agent1_robot_base", 1,
@@ -67,19 +67,20 @@ void FeedbackController::publishOnce() {
 //    State instant_state = (state_manager_(dt + 0.1) - des_state) / 0.1;
     Angle heading_deviation = Angle(std::atan2(diff_state.y, diff_state.x)) - curr_state_->yaw;
     Angle des_yaw_deviation = des_state.yaw - curr_state_->yaw;
-//    if (abs(heading_deviation) > M_PI_4) {
-//      dist *= -0.5;
-      if (model_.vx() < 0)
-        heading_deviation += M_PI; 
+    if (abs(heading_deviation) > M_PI / 3) {
+      dist *= -0.5;
 //      ROS_WARN_STREAM("ABOUT TO TRANSCEND\t" << dist << '\t' << heading_deviation);
 //      ROS_WARN_STREAM("TRANSCEND\t" << dist << '\t' << heading_deviation);
-//    }
-    if (model_.vx() < 0)
+    }
+    if (model_.vx() < 0) {
+      heading_deviation += M_PI;
       des_yaw_deviation += M_PI;
+    }
     static PID pid(0.6, 0.0, 0.0);
     model_.setThr(pid(dist));
 //    if (dist > 1e-1) {
       model_.setOrt(0.3 * heading_deviation + 0.6 * des_yaw_deviation);
+    // TODO: TRY ADVANCED FEEDBACK ALGORITHM OR CHANGE INTERPOLATION ALGORITHM
 //    } else {
 //      model_.set_vw(2.0 * des_yaw_deviation);
 //    }

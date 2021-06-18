@@ -2,7 +2,7 @@
 #include <iostream>
 #include <tuple>
 
-CarModel::CarModel(double min_rot_radius) : step_(1.0), vx_max_(10.0), rot_radius_(min_rot_radius), width_(1.0) {}
+CarModel::CarModel(double min_rot_radius) : step_(0.25), vx_max_(10.0), rot_radius_(min_rot_radius), width_(1.0) {}
 
 void CarModel::setThr(double thr) {
   if (thr > thr_ + vx_max_ * step_) thr_ += step_;
