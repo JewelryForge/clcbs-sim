@@ -16,8 +16,8 @@ class FeedbackController {
   void start();
   void stateUpdate(const geometry_msgs::Pose::ConstPtr& p);
   void spin();
+  void spinOnce();
   void publishOnce();
-  static void reset(int);
 
  private:
   ros::NodeHandle nh_;
@@ -26,6 +26,7 @@ class FeedbackController {
   tf::TransformBroadcaster tf_broadcaster_;
   std::unique_ptr<State> curr_state_;
   double ROTATION_RADIUS{};
+  std::string name_;
   bool is_started_{false};
   StateManager state_manager_;
   ros::Time t_start_{};

@@ -23,7 +23,7 @@ class State {
 
 class StateManager {
  public:
-  StateManager(std::string name, std::vector<std::pair<double, State>> states);
+  explicit StateManager(std::vector<std::pair<double, State>> states);
   void setAlignmentParam(double x, double y);;
   State operator()(double t);
 
@@ -34,7 +34,6 @@ class StateManager {
   bool finished = false;
  private:
   State getState(double t);
-  std::string name_;
   std::vector<std::pair<double, State>> states_;
   std::function<State(const State &)> align;
 };

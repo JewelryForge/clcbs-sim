@@ -30,10 +30,9 @@ double State::norm() const {
   return std::hypot(x, y);
 }
 
-StateManager::StateManager(std::string name, std::vector<std::pair<double, State>> states)
-    : name_(std::move(name)), states_(std::move(states)), align([](const State &s) { return s; }) {
+StateManager::StateManager(std::vector<std::pair<double, State>> states)
+    : states_(std::move(states)), align([](const State &s) { return s; }) {
   assert(!states_.empty() and states_.front().first == 0);
-  std::cout << states_ << std::endl;
 }
 void StateManager::setAlignmentParam(double x, double y) {
   align = [=](const State &s) { return State(s.x + x, s.y + y, s.yaw); };

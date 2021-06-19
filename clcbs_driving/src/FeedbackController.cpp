@@ -12,10 +12,10 @@
 FeedbackController::FeedbackController(ros::NodeHandle &nh,
                                        std::string name,
                                        std::vector<std::pair<double, State>> states)
-    : state_manager_(std::move(name), std::move(states)), model_(1.5) {
-  left_pub_ = nh_.advertise<std_msgs::Float64>("/agent_control/agent_leftwheel_controller/command", 1);
-  right_pub_ = nh_.advertise<std_msgs::Float64>("/agent_control/agent_rightwheel_controller/command", 1);
-  state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/agent1_robot_base", 1,
+    : name_(std::move(name)), state_manager_(std::move(states)), model_(1.5) {
+  left_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/left_wheel_controller/command", 1);
+  right_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/right_wheel_controller/command", 1);
+  state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/" + name_ + "/robot_base", 1,
                                                   [this](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
   state_manager_.setAlignmentParam(-25, -25);
 //  nh_.param("ROTATION_RADIUS", ROTATION_RADIUS, 3.0);
@@ -37,16 +37,19 @@ void FeedbackController::stateUpdate(const geometry_msgs::Pose::ConstPtr &p) {
   curr_state_ = std::make_unique<State>(p->position.x, p->position.y, yaw);
 }
 void FeedbackController::spin() {
-  int CONTROL_RATE;
-  nh_.param("CONTROL_RATE", CONTROL_RATE, 50);
-  auto rate = ros::Rate(CONTROL_RATE);
+  int PUBLISHING_FREQUENCY;
+  nh_.param("PUBLISHING_FREQUENCY", PUBLISHING_FREQUENCY, 50);
+  auto rate = ros::Rate(PUBLISHING_FREQUENCY);
   while (ros::ok()) {
-    ros::spinOnce();
-    if (curr_state_ != nullptr) {
-      if (!is_started_) start();
-      publishOnce();
-      rate.sleep();
-    }
+    spinOnce();
+    rate.sleep();
+  }
+}
+void FeedbackController::spinOnce() {
+  ros::spinOnce();
+  if (curr_state_ != nullptr) {
+    if (!is_started_) start();
+    publishOnce();
   }
 }
 void FeedbackController::publishOnce() {
@@ -57,7 +60,7 @@ void FeedbackController::publishOnce() {
   tf::Quaternion q;
   q.setRPY(0, 0, des_state.yaw);
   transform.setRotation(q);
-  tf_broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", "desired_state"));
+  tf_broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", name_ + "_desired_state"));
   if (state_manager_.finished) {
     model_.reset();
     ROS_INFO_STREAM("FINISHED");
@@ -79,7 +82,7 @@ void FeedbackController::publishOnce() {
     static PID pid(0.6, 0.0, 0.0);
     model_.setThr(pid(dist));
 //    if (dist > 1e-1) {
-      model_.setOrt(0.3 * heading_deviation + 0.6 * des_yaw_deviation);
+    model_.setOrt(0.3 * heading_deviation + 0.6 * des_yaw_deviation);
     // TODO: TRY ADVANCED FEEDBACK ALGORITHM OR CHANGE INTERPOLATION ALGORITHM
 //    } else {
 //      model_.set_vw(2.0 * des_yaw_deviation);
@@ -93,7 +96,4 @@ void FeedbackController::publishOnce() {
   left_pub_.publish(left_wheel_velocity);
   right_pub_.publish(right_wheel_velocity);
 }
-void FeedbackController::reset(int) {
-  system("/home/jewelry/catkin_ws/CLCBS/src/clcbs_driving/scripts/reset.py");
-  ros::shutdown();
-}
+

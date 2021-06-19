@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
 import rospy
-import math
-from rospy.topics import Publisher
 import tf
 import sys
 from std_msgs.msg import Header
@@ -21,16 +19,14 @@ class GazeboLinkPose:
             if topic[:2] == '__':
                 continue
             topic.strip('/')
-            self.publishers[topic] = rospy.Publisher(f'/agent_states/{topic}', PoseStamped, queue_size=10)
+            self.publishers[topic] = rospy.Publisher(f'/agent_states/{topic}', Pose, queue_size=10)
 
     def callback(self, data: LinkStates):
         try:
             for topic in self.publishers:
                 robot, link = topic.split('/')
                 idx = data.name.index(robot + "::" + link)
-                p = PoseStamped(header=Header(seq=self.seq, stamp=rospy.Time.now(), frame_id='map'),
-                                pose=data.pose[idx])
-                self.publishers[topic].publish(p)
+                self.publishers[topic].publish(data.pose[idx])
             self.seq += 1 
         except ValueError:
             pass
