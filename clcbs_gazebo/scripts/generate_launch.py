@@ -26,7 +26,7 @@ if __name__ == '__main__':
     with open(dst, 'w') as of:
         of.write(
             f'<launch>\n'
-            f'    <arg name="map_file" default="{os.path.abspath(args.map)}" />\n'
+            f'    <arg name="map_file" default="$(find clcbs_gazebo)/models/agent/config/map_50by50_obst25_agents5_ex37.yaml" />\n'
             f'    <group ns="config">\n'
             f'      <rosparam file="$(arg map_file)" command="load" />\n'
             f'    </group>\n'

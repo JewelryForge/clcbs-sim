@@ -79,15 +79,15 @@ void FeedbackController::publishOnce() {
       heading_deviation += M_PI;
       des_yaw_deviation += M_PI;
     }
-    static PID pid(0.6, 0.0, 0.0);
-    model_.setThr(pid(dist));
+//    static PID pid(0.6, 0.0, 0.0);
+    model_.setThr(0.6 * dist);
 //    if (dist > 1e-1) {
     model_.setOrt(0.3 * heading_deviation + 0.6 * des_yaw_deviation);
     // TODO: TRY ADVANCED FEEDBACK ALGORITHM OR CHANGE INTERPOLATION ALGORITHM
 //    } else {
 //      model_.set_vw(2.0 * des_yaw_deviation);
 //    }
-    ROS_INFO_STREAM(dt << diff_state << '\t' << heading_deviation << '\t' << model_.vx() << '\t' << model_.vw());
+    ROS_INFO_STREAM(name_  << ' ' << dt << ' ' << diff_state << '\t' << heading_deviation << '\t' << model_.vx() << '\t' << model_.vw());
   }
   auto v = model_.getVelocity();
   std_msgs::Float64 left_wheel_velocity, right_wheel_velocity;

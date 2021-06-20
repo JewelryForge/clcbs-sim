@@ -11,6 +11,7 @@
 #include "StateManager.h"
 using namespace std;
 
+
 int main(int argc, char **argv) {
   YAML::Node config;
   std::string file("/home/jewelry/catkin_ws/CLCBS/src/clcbs_driving/output.yaml");
@@ -39,6 +40,4 @@ int main(int argc, char **argv) {
     rate.sleep();
   }
 
-//  auto publisher = FeedbackController(nh, "agent0", t_states);
-//  publisher.spin();
 }
