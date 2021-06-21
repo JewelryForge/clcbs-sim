@@ -25,7 +25,7 @@ rosservice call /gazebo/set_model_state "model_state:
       y: -23.0
     orientation:
       w: 0.707
-      z: 0.707";
+      z: -0.707";
 rosservice call /gazebo/set_model_state "model_state:
   model_name: 'agent2'
   pose:
@@ -34,7 +34,7 @@ rosservice call /gazebo/set_model_state "model_state:
       y: 18.0
     orientation:
       w: 0.707
-      z: -0.707";
+      z: 0.707";
 rosservice call /gazebo/set_model_state "model_state:
   model_name: 'agent3'
   pose:
@@ -43,7 +43,7 @@ rosservice call /gazebo/set_model_state "model_state:
       y: -6.0
     orientation:
       w: 0.0
-      z: 1.0";
+      z: -1.0";
 rosservice call /gazebo/set_model_state "model_state:
   model_name: 'agent4'
   pose:

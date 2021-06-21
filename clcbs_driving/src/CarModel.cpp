@@ -21,7 +21,7 @@ void CarModel::setOrt(double ort) {
   ort_ = std::max(std::min(ort, 1.0), -1.0);
 }
 void CarModel::setVw(double vw) {
-  setRad(vw / vx());
+  vw == 0 ? setOrt(0.) : setRad(vx() / vw);
 }
 void CarModel::setRad(double radius) {
   if (radius == 0.0) setOrt(1);

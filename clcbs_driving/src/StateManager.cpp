@@ -74,7 +74,7 @@ State StateManager::getState(double t) {
   return states_.back().second;
 }
 
-std::tuple<double, double> StateManager::getInstruction(double t) {
+std::tuple<double, double> StateManager::getInstruction(double t) { // vx, vw
   if (t <= 0) {
     return {0, 0};
   } else if (t <= states_.back().first) {
@@ -82,10 +82,9 @@ std::tuple<double, double> StateManager::getInstruction(double t) {
       if (iter->first < t) continue;
       auto s_p = iter - 1, s_n = iter;
       auto diff_state = s_n->second - s_p->second;
-      double d_yaw = diff_state.yaw, v;
-      if (d_yaw == 0.) v = diff_state.norm() / (s_n->first - s_p->first);
-      else v = diff_state.norm() / (s_n->first - s_p->first) * d_yaw / (2 * sin(d_yaw / 2.));
-      return {v, v * d_yaw};
+      double d_yaw = diff_state.yaw, v = diff_state.diff();
+      if (diff_state.asVector2().dot(s_p->second.oritUnit2()) < 0) v *= -1;
+      return {v, d_yaw};
     }
   }
   finished = true;

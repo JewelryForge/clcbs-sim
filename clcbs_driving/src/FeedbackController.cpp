@@ -66,8 +66,8 @@ void FeedbackController::publishOnce() {
   } else {
     State diff_state = des_state - *curr_state_;
     ROS_INFO_STREAM(vx << ' ' << vw);
-    model_.setVx(vx);
-    model_.setVw(vw);
+    model_.setVx(vx * 3);
+    model_.setVw(vw); // FIXME: 反了
 //    double dist = std::hypot(diff_state.x, diff_state.y);
 //    State instant_state = (state_manager_(dt + 0.1) - des_state) / 0.1;
 //    Angle heading_deviation = Angle(std::atan2(diff_state.y, diff_state.x)) - des_state.yaw;
