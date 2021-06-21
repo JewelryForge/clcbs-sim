@@ -35,7 +35,7 @@ if __name__ == '__main__':
         for i, agent in enumerate(agents):
             state_args.append(f'agent{i}/robot_base')
             start_state = agent['start']
-            x, y, yaw = start_state[0] - map_size[0] / 2, start_state[1] - map_size[1] / 2, start_state[2]
+            x, y, yaw = start_state[0] - map_size[0] / 2, start_state[1] - map_size[1] / 2, -start_state[2]
             of.write(
                 f'   <arg name="ns_{i}" value="agent{i}" />\n'
                 f'   <group ns="$(arg ns_{i})">\n'

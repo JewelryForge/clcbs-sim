@@ -9,6 +9,7 @@
 
 #include "StateManager.h"
 #include "CarModel.h"
+#include "PID.hpp"
 
 class FeedbackController {
  public:
@@ -24,11 +25,14 @@ class FeedbackController {
   ros::Publisher left_pub_, right_pub_;
   ros::Subscriber state_sub_;
   tf::TransformBroadcaster tf_broadcaster_;
-  std::unique_ptr<State> curr_state_;
+
+  std::shared_ptr<State> curr_state_, prev_state_;
+  double velocity_measured{0};
   double ROTATION_RADIUS{};
   std::string name_;
   bool is_started_{false};
   StateManager state_manager_;
+  PID pid1_;
   ros::Time t_start_{};
   CarModel model_;
 };

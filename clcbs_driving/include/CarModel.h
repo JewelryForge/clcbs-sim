@@ -7,6 +7,9 @@ class CarModel {
   explicit CarModel(double min_rot_radius = 3.0);
   void setThr(double thr);
   void setOrt(double ort);
+  void setRad(double radius);
+  void setVx(double vx);
+  void setVw(double vw);
   void reset();
   double vx() const;
   double vw() const;

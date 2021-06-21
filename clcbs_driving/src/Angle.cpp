@@ -6,7 +6,7 @@ Angle::Angle(double angle) : angle_(angle) {
   normalize();
 }
 Angle Angle::Degree(double degree) {
-  return {degree * M_PI / 180};
+  return Angle(degree * M_PI / 180);
 }
 Angle operator+(const Angle &a, const Angle &b) {
   Angle c(a.angle_ + b.angle_);
