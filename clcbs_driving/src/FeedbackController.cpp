@@ -9,15 +9,14 @@
 
 #include "FeedbackController.h"
 
-FeedbackController::FeedbackController(ros::NodeHandle &nh,
-                                       std::string name,
+FeedbackController::FeedbackController(ros::NodeHandle &nh, std::string name,
                                        std::vector<std::pair<double, State>> states)
-    : name_(std::move(name)), state_manager_(std::move(states)), model_(1.5), pid1_(2, 0.1, 1.0), pid2_(2, 0.1, 1.0) {
+    : name_(std::move(name)), state_manager_(std::move(states)), model_(), pid1_(2, 0.1, 1.0), pid2_(2, 0.1, 1.0) {
   left_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/left_wheel_controller/command", 1);
   right_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/right_wheel_controller/command", 1);
   state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/" + name_ + "/robot_base", 1,
                                                   [this](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
-  state_manager_.setAlignmentParam(-25, -25);
+  state_manager_.setAlignmentParam(-Constants::MAP_SIZE_X / 2, -Constants::Y_MAP_SIZE / 2);
 }
 void FeedbackController::start() {
   is_started_ = true;

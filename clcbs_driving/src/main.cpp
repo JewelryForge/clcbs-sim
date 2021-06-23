@@ -30,14 +30,14 @@ int main(int argc, char **argv) {
   std::vector<std::unique_ptr<FeedbackController>> controllers;
   for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
     std::string key = iter->first.as<std::string>();
-//    key = "agent0";
+    key = "agent1";
     std::vector<std::pair<double, State>> t_states;
     for (auto s : schedule[key]) {
       auto t = s["t"].as<double>(), x = s["x"].as<double>(), y = s["y"].as<double>(), yaw = -s["yaw"].as<double>();
       t_states.emplace_back(t, State(x, y, yaw));
     }
     controllers.push_back(std::make_unique<FeedbackController>(nh, key, t_states));
-//    break;
+    break;
   }
 
   int PUBLISHING_FREQUENCY;

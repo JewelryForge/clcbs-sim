@@ -1,10 +1,11 @@
 #ifndef CLCBS_DRIVING_INCLUDE_CARMODEL_H_
 #define CLCBS_DRIVING_INCLUDE_CARMODEL_H_
 #include <tuple>
-
+#include "Constants.h"
 class CarModel {
  public:
-  explicit CarModel(double min_rot_radius = 3.0);
+  CarModel();
+  explicit CarModel(double rotation_radius);
   void setThr(double thr);
   void setOrt(double ort);
   void setRad(double radius);
@@ -15,8 +16,8 @@ class CarModel {
   double vw() const;
   std::pair<double, double> getVelocity() const;
  private:
-  double thr_{0.}, ort_{0.};
-  double vx_max_{3.}, step_, rot_radius_, width_;
+  double thr_, ort_;
+  double vx_max_, /* step_, */ rot_radius_, width_;
 };
 
 
