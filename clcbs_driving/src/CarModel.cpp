@@ -2,7 +2,7 @@
 #include <iostream>
 #include <tuple>
 
-CarModel::CarModel(double min_rot_radius) : step_(0.2), vx_max_(10.0), rot_radius_(min_rot_radius), width_(1.0) {}
+CarModel::CarModel(double min_rot_radius) : step_(0.2), vx_max_(10.0), rot_radius_(min_rot_radius), width_(2.0) {}
 
 void CarModel::setThr(double thr) {
   if (thr > thr_ + vx_max_ * step_) thr_ += step_;
@@ -43,6 +43,6 @@ double CarModel::vw() const {
 }
 
 std::pair<double, double> CarModel::getVelocity() const {
-  return {vx() - vw() * width_ / 2, vx() + vw() * width_ / 2};
+  return {vx() - vw() * width_  / 2, vx() + vw() * width_  / 2};
 }
 

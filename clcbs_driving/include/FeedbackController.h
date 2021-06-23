@@ -18,7 +18,8 @@ class FeedbackController {
   void stateUpdate(const geometry_msgs::Pose::ConstPtr& p);
   void spin();
   void spinOnce();
-  void publishOnce();
+  void publishOnce(double left_vel, double right_vel);
+  void calculateVelocityAndPublish();
 
  private:
   ros::NodeHandle nh_;
@@ -32,7 +33,7 @@ class FeedbackController {
   std::string name_;
   bool is_started_{false};
   StateManager state_manager_;
-  PID pid1_;
+  PID pid1_, pid2_;
   ros::Time t_start_{};
   CarModel model_;
 };

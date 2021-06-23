@@ -12,7 +12,7 @@
 FeedbackController::FeedbackController(ros::NodeHandle &nh,
                                        std::string name,
                                        std::vector<std::pair<double, State>> states)
-    : name_(std::move(name)), state_manager_(std::move(states)), model_(1.5), pid1_(2, 0.5, 0.5) {
+    : name_(std::move(name)), state_manager_(std::move(states)), model_(1.5), pid1_(2, 0.1, 1.0), pid2_(2, 0.1, 1.0) {
   left_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/left_wheel_controller/command", 1);
   right_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/right_wheel_controller/command", 1);
   state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/" + name_ + "/robot_base", 1,
@@ -46,10 +46,20 @@ void FeedbackController::spinOnce() {
   ros::spinOnce();
   if (prev_state_ != nullptr) {
     if (!is_started_) start();
-    publishOnce();
+    controlAlgorithm();
   }
 }
-void FeedbackController::publishOnce() {
+
+void FeedbackController::publishOnce(const &std::pair<double, double> v) {
+  const double WHEEL_RADIUS = 0.5; // TODO: CHANGE TO ROS_PARAM
+  std_msgs::Float64 left_wheel_velocity, right_wheel_velocity;
+  left_wheel_velocity.data = v.first;
+  right_wheel_velocity.data = v.second;
+  left_pub_.publish(left_wheel_velocity / WHEEL_RADIUS);
+  right_pub_.publish(right_wheel_velocity / WHEEL_RADIUS);
+}
+
+void FeedbackController::calculateVelocityAndPublish() {
   double dt = (ros::Time::now() - t_start_).toSec();
   State des_state = state_manager_(dt);
   double vx, vw;
@@ -66,39 +76,36 @@ void FeedbackController::publishOnce() {
   } else {
     State diff_state = des_state - *curr_state_;
     ROS_INFO_STREAM(vx << ' ' << vw);
-    model_.setVx(vx * 3);
-    model_.setVw(vw); // FIXME: 反了
-//    double dist = std::hypot(diff_state.x, diff_state.y);
-//    State instant_state = (state_manager_(dt + 0.1) - des_state) / 0.1;
-//    Angle heading_deviation = Angle(std::atan2(diff_state.y, diff_state.x)) - des_state.yaw;
-//    Angle des_yaw_deviation = heading_deviation - curr_state_->yaw;
+//    model_.setVx(pid1_(vx - velocity_measured));
+//    model_.setVx(vx * 3);
+//    model_.setVw(vw + pid2_(des_state.yaw - curr_state_->yaw));
+//    model_.setVw(vw);
+    double dist = std::hypot(diff_state.x, diff_state.y);
+    State instant_state = (state_manager_(dt + 0.1) - des_state) / 0.1;
+    Angle heading_deviation = Angle(std::atan2(diff_state.y, diff_state.x)) - des_state.yaw;
+    Angle des_yaw_deviation = heading_deviation - curr_state_->yaw;
 
-//    if (abs(heading_deviation) > M_PI / 3) {
-//      dist *= -0.5;
-//    }
+    if (abs(heading_deviation) > M_PI / 2) {
+      dist *= -1;
+    }
 
-//    if (model_.vx() < 0) {
-//      heading_deviation += M_PI;
-//      des_yaw_deviation += M_PI;
-//    }
+    if (model_.vx() < 0) {
+      heading_deviation += M_PI;
+      des_yaw_deviation += M_PI;
+    }
 
-//    double rho = dist, beta = heading_deviation, alpha = des_yaw_deviation;
-//    double k1 = 0.5, k2 = 1;
-//    double kappa_1 = k2 * (alpha - atan(-k1 * beta));
-//    double kappa_2 = (1 + k1 / (1 + pow(k1 * beta, 2))) * sin(alpha);
-//    double kappa = (kappa_1 + kappa_2) / rho;
-//    double mu = 1, lambda = 1;
-//    model_.setThr(1 / (1 + mu * pow(abs(kappa), lambda)));
-//    model_.setRad(kappa);
+    double rho = dist, beta = heading_deviation, alpha = des_yaw_deviation;
+    double k1 = 0.5, k2 = 1;
+    double kappa_1 = k2 * (alpha - atan(-k1 * beta));
+    double kappa_2 = (1 + k1 / (1 + pow(k1 * beta, 2))) * sin(alpha);
+    double kappa = (kappa_1 + kappa_2) / rho;
+    double mu = 1, lambda = 1;
+    model_.setThr(1 / (1 + mu * pow(abs(kappa), lambda)));
+    model_.setRad(kappa);
     // TODO: TRY ADVANCED FEEDBACK ALGORITHM OR CHANGE INTERPOLATION ALGORITHM
-//    ROS_INFO_STREAM(name_ << ' ' << dt << ' ' << diff_state << '\t' << heading_deviation << '\t' << model_.vx() << '\t'
-//                          << model_.vw());
+    ROS_INFO_STREAM(name_ << ' ' << dt << ' ' << diff_state << '\t' << heading_deviation << '\t' << model_.vx() << '\t'
+                          << model_.vw());
   }
-  auto v = model_.getVelocity();
-  std_msgs::Float64 left_wheel_velocity, right_wheel_velocity;
-  left_wheel_velocity.data = v.first;
-  right_wheel_velocity.data = v.second;
-  left_pub_.publish(left_wheel_velocity);
-  right_pub_.publish(right_wheel_velocity);
+  publishOnce(model_.getVelocity());
 }
 
