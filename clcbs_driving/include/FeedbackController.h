@@ -13,7 +13,7 @@
 
 class FeedbackController {
  public:
-  FeedbackController(ros::NodeHandle &nh, std::string name, std::vector<std::pair<double, State>> states);
+  FeedbackController(ros::NodeHandle &nh, std::string name, const std::vector<std::pair<double, State>>& states);
   void start();
   void stateUpdate(const geometry_msgs::Pose::ConstPtr& p);
   void spin();
