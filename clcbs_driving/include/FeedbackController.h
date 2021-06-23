@@ -18,7 +18,7 @@ class FeedbackController {
   void stateUpdate(const geometry_msgs::Pose::ConstPtr& p);
   void spin();
   void spinOnce();
-  void publishOnce(double left_vel, double right_vel);
+  void publishOnce(const std::pair<double, double> &v);
   void calculateVelocityAndPublish();
 
  private:
