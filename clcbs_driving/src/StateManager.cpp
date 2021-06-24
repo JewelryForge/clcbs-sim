@@ -49,8 +49,8 @@ Eigen::Vector2d State::oritUnit2() const {
 Eigen::Vector3d State::oritUnit3() const {
   return {cos(yaw), sin(yaw), 0};
 }
-StateManager::StateManager(const std::vector<std::pair<double, State>> &states, std::string mode)
-    : mode_(std::move(mode)), align([](const State &s) { return s; }) {
+StateManager::StateManager(const std::vector<std::pair<double, State>> &states)
+    : align([](const State &s) { return s; }) {
   assert(states.size() >= 2 and states.front().first == 0);
   transitions_.reserve(states.size());
   for (auto curr = states.begin(), next = curr + 1;; curr = next, ++next) {
@@ -85,15 +85,12 @@ StateManager::StateManager(const std::vector<std::pair<double, State>> &states, 
       }
     }
 
-    if (curr == states.begin()) {
-      t.v = {0.0, 0.0};
-    } else {
-      t.v = {t.x.first / dt, t.x.second / dt};
-    }
+    if (curr == states.begin()) t.v = {0.0, 0.0};
+    else t.v = {t.x.first / dt, t.x.second / dt};
 
     transitions_.emplace_back(curr->first, t);
   }
-  std::cout << transitions_ << std::endl;
+//  std::cout << transitions_ << std::endl;
 }
 
 void StateManager::setAlignmentParam(double x, double y) {
@@ -106,32 +103,14 @@ const Instruction &StateManager::operator()(double t) {
     instruction_.des_state = transitions_.front().second.state;
     instruction_.des_velocity = {0.0, 0.0};
   } else if (t <= transitions_.back().first) {
-    for (auto iter = transitions_.begin(); iter != transitions_.end(); ++iter) {
+    int idx = -1;
+    for (auto iter = transitions_.begin(); iter != transitions_.end(); ++iter, ++idx) {
       if (iter->first < t) continue;
       auto s_p = iter - 1, s_n = iter;
       double period = s_n->first - s_p->first, dt = t - s_p->first;
-      auto diff_state = s_n->second.state - s_p->second.state;
       instruction_.des_state = State::interp(s_p->second.state, s_n->second.state, dt / period);
-      if (mode_ == "Linear") {
-//        double w = diff_state.yaw / period, v = diff_state.diff() / period;
-//        if (diff_state.asVector2().dot(s_p->second.state.oritUnit2()) < 0) v *= -1;
-//        instruction_.des_velocity = {v - Constants::CAR_WIDTH / 2 * w, // TODO: MODIFY CAR_WIDTH TO A LOCAL VARIABLE
-//                                     v + Constants::CAR_WIDTH / 2 * w};
-        instruction_.des_velocity = s_n->second.v;
-        // TODO: UPDATE INSTRUCTION_.OPERATION
-      } else if (mode_ == "3rdPoly") {
-        double vl0, vr0, vlf, vrf, xl, xr, vl, vr;
-        std::tie(vl0, vr0) = s_p->second.v;
-        std::tie(vlf, vrf) = s_n->second.v;
-        std::tie(xl, xr) = s_n->second.x;
-        vl = vl0 + 2 / pow(period, 2) * dt * (3 * xl - 2 * vl0 * period - vlf * period) +
-            3 / pow(period, 3) * pow(dt, 2) * ((vl0 + vlf) * period - 2 * xl);
-        vr = vr0 + 2 / pow(period, 2) * dt * (3 * xr - 2 * vr0 * period - vrf * period) +
-            3 / pow(period, 3) * pow(dt, 2) * ((vr0 + vrf) * period - 2 * xr);
-        instruction_.des_velocity = {vl, vr}; // TODO: TRY 5th POLYNOMIAL INTERPOLATION
-      } else {
-        throw std::invalid_argument("No mode named " + mode_);
-      }
+//      instruction_.des_velocity = s_n->second.v;
+      interpolateVelocity(idx, dt, *s_p, *s_n);
       break;
     }
   } else {

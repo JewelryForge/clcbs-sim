@@ -11,12 +11,13 @@
 
 FeedbackController::FeedbackController(ros::NodeHandle &nh, std::string name,
                                        const std::vector<std::pair<double, State>>& states)
-    : name_(std::move(name)), state_manager_(states, "3rdPoly"), model_(), pid1_(2, 0.1, 1.0), pid2_(2, 0.1, 1.0) {
+    : name_(std::move(name)), model_(), pid1_(2, 0.1, 1.0), pid2_(2, 0.1, 1.0) {
   left_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/left_wheel_controller/command", 1);
   right_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/right_wheel_controller/command", 1);
   state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/" + name_ + "/robot_base", 1,
                                                   [this](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
-  state_manager_.setAlignmentParam(-Constants::MAP_SIZE_X / 2, -Constants::MAP_SIZE_Y / 2);
+  state_manager_ = std::make_unique<MinAccStateManager>(states);
+  state_manager_->setAlignmentParam(-Constants::MAP_SIZE_X / 2, -Constants::MAP_SIZE_Y / 2);
 }
 void FeedbackController::start() {
   is_started_ = true;
@@ -59,7 +60,7 @@ void FeedbackController::publishOnce(const std::pair<double, double> &v) {
 
 void FeedbackController::calculateVelocityAndPublish() {
   double dt = (ros::Time::now() - t_start_).toSec();
-  const Instruction &des = state_manager_(dt);
+  const Instruction &des = (*state_manager_)(dt);
   const State &des_state = des.des_state;
 //  std::tie(vx, vw) = state_manager_.getInstruction(dt);
   tf::Transform transform;
