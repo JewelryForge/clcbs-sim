@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
     controllers.push_back(std::make_unique<FeedbackController>(nh, key, t_states));
     break;
   }
+  ROS_INFO("SETTING UP FINISHED");
 
   int PUBLISHING_FREQUENCY;
   nh.param("PUBLISHING_FREQUENCY", PUBLISHING_FREQUENCY, 50);

@@ -27,8 +27,7 @@ class FeedbackController {
   ros::Subscriber state_sub_;
   tf::TransformBroadcaster tf_broadcaster_; // TODO: CHANGE TO tf2
 
-  std::shared_ptr<State> curr_state_, prev_state_;
-  double velocity_measured{0};
+  std::unique_ptr<State> curr_state_;
   double ROTATION_RADIUS{};
   std::string name_;
   bool is_started_{false};

@@ -24,27 +24,22 @@ void FeedbackController::start() {
   t_start_ = ros::Time::now();
 }
 void FeedbackController::stateUpdate(const geometry_msgs::Pose::ConstPtr &p) {
-  prev_state_ = curr_state_;
   auto &o = p->orientation;
   Eigen::Quaterniond q(o.w, o.x, o.y, o.z);
   Angle yaw(atan2(2 * (q.w() * q.z() + q.x() * q.y()), 1 - 2 * (q.x() * q.x()) + q.y() * q.y()));
-  curr_state_ = std::make_shared<State>(p->position.x, p->position.y, yaw);
-  if (prev_state_ != nullptr) {
-    velocity_measured = (*curr_state_ - *prev_state_).diff();
-  }
+  curr_state_ = std::make_unique<State>(p->position.x, p->position.y, yaw);
 }
 void FeedbackController::spin() {
-  int PUBLISHING_FREQUENCY;
-  nh_.param("PUBLISHING_FREQUENCY", PUBLISHING_FREQUENCY, 50);
-  auto rate = ros::Rate(PUBLISHING_FREQUENCY);
+  auto rate = ros::Rate(50);
   while (ros::ok()) {
     spinOnce();
     rate.sleep();
   }
 }
+
 void FeedbackController::spinOnce() {
   ros::spinOnce();
-  if (prev_state_ != nullptr) {
+  if (curr_state_ != nullptr) {
     if (!is_started_) start();
     calculateVelocityAndPublish();
   }
@@ -61,33 +56,38 @@ void FeedbackController::publishOnce(const std::pair<double, double> &v) {
 void FeedbackController::calculateVelocityAndPublish() {
   double dt = (ros::Time::now() - t_start_).toSec();
   const Instruction &des = (*state_manager_)(dt);
-  const State &des_state = des.des_state;
+  const State &interp_state = des.interp_state;
 //  std::tie(vx, vw) = state_manager_.getInstruction(dt);
   tf::Transform transform;
-  transform.setOrigin(tf::Vector3(des_state.x, des_state.y, 0));
+  transform.setOrigin(tf::Vector3(interp_state.x, interp_state.y, 0));
   tf::Quaternion q;
-  q.setRPY(0, 0, des_state.yaw);
+  q.setRPY(0, 0, interp_state.yaw);
   transform.setRotation(q);
   tf_broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", name_ + "_desired_state"));
 
-  double vl, vr;
-  std::tie(vl, vr) = des.des_velocity;
-  ROS_INFO_STREAM((vl + vr) / 2 << ' ' << (vr - vl) / Constants::CAR_WIDTH);
-  publishOnce({vl, vr});
-
-//  if (state_manager_.finished) {
+//  double vl, vr, vx, vw;
+//  std::tie(vl, vr) = des.des_velocity;
+//  publishOnce({vl, vr});
+  // TODO: CLOSE LOOP
+  if (state_manager_->finished) {
 //    model_.reset();
-//    ROS_INFO_STREAM("FINISHED");
-//  } else {
-//    State diff_state = des_state - *curr_state_;
+    ROS_INFO_STREAM("FINISHED");
+  } else {
+    //TODO: USE DIFF OF LEFT_X AND RIGHT_X TO CALCULATE DES_YAW
+    //TODO: FINISH A FEEDFORWARD AND A FEEDBACK LOOP
+//    double vx = des.des_velocity.first + des.des_velocity.second;
+//    double vw = (des.des_velocity.second - des.des_velocity.first) / Constants::CAR_WIDTH;
+
+//    ROS_INFO_STREAM((vl + vr) / 2 << ' ' << (vr - vl) / Constants::CAR_WIDTH);
+//    State diff_state = interp_state - *curr_state_;
 //    ROS_INFO_STREAM(vx << ' ' << vw);
 //    model_.setVx(pid1_(vx - velocity_measured));
 //    model_.setVx(vx);
-//    model_.setVw(vw + pid2_(des_state.yaw - curr_state_->yaw));
+//    model_.setVw(vw + pid2_(interp_state.yaw - curr_state_->yaw));
 //    model_.setVw(vw);
 //    double dist = std::hypot(diff_state.x, diff_state.y);
-//    State instant_state = (state_manager_(dt + 0.1) - des_state) / 0.1;
-//    Angle heading_deviation = Angle(std::atan2(diff_state.y, diff_state.x)) - des_state.yaw;
+//    State instant_state = (state_manager_(dt + 0.1) - interp_state) / 0.1;
+//    Angle heading_deviation = Angle(std::atan2(diff_state.y, diff_state.x)) - interp_state.yaw;
 //    Angle des_yaw_deviation = heading_deviation - curr_state_->yaw;
 //
 //    if (abs(heading_deviation) > M_PI / 2) {
@@ -107,10 +107,10 @@ void FeedbackController::calculateVelocityAndPublish() {
 //    double mu = 1, lambda = 1;
 //    model_.setThr(1 / (1 + mu * pow(abs(kappa), lambda)));
 //    model_.setRad(kappa);
-    // TODO: TRY ADVANCED FEEDBACK ALGORITHM OR CHANGE INTERPOLATION ALGORITHM
+
 //    ROS_INFO_STREAM(name_ << ' ' << dt << ' ' << diff_state << '\t' << heading_deviation << '\t' << model_.vx() << '\t'
 //                          << model_.vw());
-//  }
+  }
 //  publishOnce(model_.getVelocity());
 }
 
