@@ -214,6 +214,7 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
   gradient.setZero();
 
   int idx = 0, constrain_count = 0;
+  std::pair<double, double> accumulated_x{0.0, 0.0};
   for (auto curr = logs_.begin(), next = curr + 1; next != logs_.end(); curr = next, ++next, ++idx) {
     double dt = next->first - curr->first;
     double dt_pow[8]{1};
@@ -235,14 +236,19 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
     hessian.insert(3 + 6 * idx, 5 + 6 * idx) = 24 * dt_pow[5];
     hessian.insert(4 + 6 * idx, 5 + 6 * idx) = 40 * dt_pow[6];
     hessian.insert(5 + 6 * idx, 5 + 6 * idx) = 400. / 7 * dt_pow[7];
-    constrains.insert(constrain_count++, 6 * idx) = 1; // x0
+    constrains.insert(constrain_count, 6 * idx) = 1; // x0
+    l_values(constrain_count) = accumulated_x.first;
+    r_values(constrain_count) = accumulated_x.second;
+    constrain_count++;
     if (idx == 0) {
       constrains.insert(constrain_count++, 1 + 6 * idx) = 1;
       constrains.insert(constrain_count++, 2 + 6 * idx) = 2;
     }
     for (int i = 0; i < 6; i++) constrains.insert(constrain_count, i + 6 * idx) = dt_pow[i]; // xt
-    l_values(constrain_count) = curr->second.x.first;
-    r_values(constrain_count) = curr->second.x.second;
+    accumulated_x.first += curr->second.x.first;
+    accumulated_x.second += curr->second.x.second;
+    l_values(constrain_count) = accumulated_x.first;
+    r_values(constrain_count) = accumulated_x.second;
     constrain_count++;
     if (idx < k - 1) {
       for (int i = 1; i < 6; i++) constrains.insert(constrain_count, i + 6 * idx) = i * dt_pow[i - 1]; // v continuity
@@ -261,11 +267,11 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
     }
   }
 
-//  std::cout << hessian << std::endl;
-//  std::cout << constrains << std::endl;
-//  std::cout << l_values.transpose() << std::endl;
-//  std::cout << r_values.transpose() << std::endl;
-//  std::cout << k << std::endl;
+  std::cout << hessian << std::endl;
+  std::cout << constrains << std::endl;
+  std::cout << l_values.transpose() << std::endl;
+  std::cout << r_values.transpose() << std::endl;
+  std::cout << k << std::endl;
 
   OsqpEigen::Solver solver;
   solver.settings()->setWarmStart(true);
@@ -280,14 +286,14 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
   assert(solver.initSolver());
   assert(solver.solve());
   left_params = solver.getSolution();
-//  std::cout << "SOLUTION: \n" << left_params.transpose() << std::endl;
+  std::cout << "SOLUTION: \n" << left_params.transpose() << std::endl;
   solver.clearSolver();
   assert(solver.data()->setLowerBound(r_values));
   assert(solver.data()->setUpperBound(r_values));
   assert(solver.initSolver());
   assert(solver.solve());
   right_params = solver.getSolution();
-//  std::cout << "SOLUTION: \n" << right_params.transpose() << std::endl;
+  std::cout << "SOLUTION: \n" << right_params.transpose() << std::endl;
 }
 
 void MinAccStateManager::interpolateVelocity(int idx, double dt,
@@ -299,6 +305,9 @@ void MinAccStateManager::interpolateVelocity(int idx, double dt,
   for (int i = 1; i < 5; i++) dt_pow[i] = dt_pow[i - 1] * dt;
   for (int i = 1; i < 6; i++) coeff[i] = dt_pow[i - 1] * i;
   double vl = coeff * left_params.block<6, 1>(idx * 6, 0);
+  double xl = dt_pow * left_params.block<6, 1>(idx * 6, 0);
   double vr = coeff * right_params.block<6, 1>(idx * 6, 0);
+  double xr = dt_pow * right_params.block<6, 1>(idx * 6, 0);
   instruction_.des_velocity = {vl, vr};
+  instruction_.des_state = {0, 0, (xr - xl) / Constants::CAR_WIDTH};
 }

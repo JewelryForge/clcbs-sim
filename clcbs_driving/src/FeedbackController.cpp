@@ -10,7 +10,7 @@
 #include "FeedbackController.h"
 
 FeedbackController::FeedbackController(ros::NodeHandle &nh, std::string name,
-                                       const std::vector<std::pair<double, State>>& states)
+                                       const std::vector<std::pair<double, State>> &states)
     : name_(std::move(name)), model_(), pid1_(2, 0.1, 1.0), pid2_(2, 0.1, 1.0) {
   left_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/left_wheel_controller/command", 1);
   right_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/right_wheel_controller/command", 1);
@@ -65,20 +65,26 @@ void FeedbackController::calculateVelocityAndPublish() {
   transform.setRotation(q);
   tf_broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", name_ + "_desired_state"));
 
-//  double vl, vr, vx, vw;
-//  std::tie(vl, vr) = des.des_velocity;
-//  publishOnce({vl, vr});
   // TODO: CLOSE LOOP
   if (state_manager_->finished) {
+    publishOnce({0.0, 0.0});
 //    model_.reset();
     ROS_INFO_STREAM("FINISHED");
   } else {
     //TODO: USE DIFF OF LEFT_X AND RIGHT_X TO CALCULATE DES_YAW
     //TODO: FINISH A FEEDFORWARD AND A FEEDBACK LOOP
-//    double vx = des.des_velocity.first + des.des_velocity.second;
-//    double vw = (des.des_velocity.second - des.des_velocity.first) / Constants::CAR_WIDTH;
+    double vl, vr;
+    std::tie(vl, vr) = des.des_velocity;
+    double vx = (vl + vr) / 2, vw = (vr - vl) / Constants::CAR_WIDTH;
+    double delta_yaw = des.des_state.yaw - curr_state_->yaw;
+    model_.setVx(vx);
+    model_.setVw(vw + 2.0 * delta_yaw);
+//    vl -= 2.0 * delta_yaw * Constants::CAR_WIDTH / 2;
+//    vr += 2.0 * delta_yaw * Constants::CAR_WIDTH / 2;
+    std::tie(vl, vr) = model_.getVelocity();
+    publishOnce(model_.getVelocity());
+    ROS_INFO_STREAM((vr - vl) / Constants::CAR_WIDTH << " D_YAW: " << des.des_state.yaw << ' ' << curr_state_->yaw);
 
-//    ROS_INFO_STREAM((vl + vr) / 2 << ' ' << (vr - vl) / Constants::CAR_WIDTH);
 //    State diff_state = interp_state - *curr_state_;
 //    ROS_INFO_STREAM(vx << ' ' << vw);
 //    model_.setVx(pid1_(vx - velocity_measured));

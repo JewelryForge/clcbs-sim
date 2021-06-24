@@ -46,7 +46,7 @@ std::string move2str(MoveType m);
 
 struct Instruction {
   Move::MoveType operation = Move::STOP;
-  State interp_state, goal;
+  State interp_state, goal, des_state;
   std::pair<double, double> des_velocity;
 };
 
@@ -56,7 +56,7 @@ struct Transition {
       state(state), v(std::move(velocity)), move(move) {};
   friend std::ostream &operator<<(std::ostream &os, const Transition &t);;
   State state;
-  std::pair<double, double> x, v;
+  std::pair<double, double> x, v; // TODO: CHANGE TO Eigen::Vector2d
   Move::MoveType move = Move::STOP; // next move
 };
 
