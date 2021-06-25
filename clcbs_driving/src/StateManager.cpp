@@ -131,41 +131,6 @@ const Instruction &StateManager::operator()(double t) {
   return instruction_;
 }
 
-
-
-
-//State StateManager::getState(double t) {
-//  if (t <= 0) {
-//    return states_.front().second;
-//  } else if (t <= states_.back().first) {
-//    for (auto iter = states_.begin(); iter != states_.end(); ++iter) {
-//      if (iter->first < t) continue;
-//      auto s_p = iter - 1, s_n = iter;
-//      double ratio = (t - s_p->first) / (s_n->first - s_p->first);
-//      return State::interp(s_p->second, s_n->second, ratio);
-//    }
-//  }
-//  finished = true;
-//  return states_.back().second;
-//}
-//
-//std::tuple<double, double> StateManager::getInstruction(double t) { // vx, vw
-//  if (t <= 0) {
-//    return {0, 0};
-//  } else if (t <= states_.back().first) {
-//    for (auto iter = states_.begin(); iter != states_.end(); ++iter) {
-//      if (iter->first < t) continue;
-//      auto s_p = iter - 1, s_n = iter;
-//      auto diff_state = s_n->second - s_p->second;
-//      double d_yaw = diff_state.yaw, v = diff_state.diff();
-//      if (diff_state.asVector2().dot(s_p->second.oritUnit2()) < 0) v *= -1;
-//      return {v, d_yaw};
-//    }
-//  }
-//  finished = true;
-//  return {0, 0};
-//}
-
 std::string Move::move2str(Move::MoveType m) {
   switch (m) {
     case STOP: return "SP";
@@ -221,7 +186,6 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
   for (auto curr = logs_.begin(), next = curr + 1; next != logs_.end(); curr = next, ++next, ++idx) {
     double dt = next->first - curr->first;
     double dt_pow[8]{1};
-    // TODO: ADD ACCUMULATED X
     for (int i = 1; i < 8; i++) dt_pow[i] = dt_pow[i - 1] * dt;
     hessian.insert(2 + 6 * idx, 2 + 6 * idx) = 4 * dt_pow[1];
     hessian.insert(3 + 6 * idx, 2 + 6 * idx) = 6 * dt_pow[2];
@@ -270,11 +234,11 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
     }
   }
 
-  std::cout << hessian << std::endl;
-  std::cout << constrains << std::endl;
-  std::cout << l_values.transpose() << std::endl;
-  std::cout << r_values.transpose() << std::endl;
-  std::cout << k << std::endl;
+//  std::cout << hessian << std::endl;
+//  std::cout << constrains << std::endl;
+//  std::cout << l_values.transpose() << std::endl;
+//  std::cout << r_values.transpose() << std::endl;
+//  std::cout << k << std::endl;
 
   OsqpEigen::Solver solver;
   solver.settings()->setWarmStart(true);
@@ -289,14 +253,14 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
   assert(solver.initSolver());
   assert(solver.solve());
   left_params = solver.getSolution();
-  std::cout << "SOLUTION: \n" << left_params.transpose() << std::endl;
+//  std::cout << "SOLUTION: \n" << left_params.transpose() << std::endl;
   solver.clearSolver();
   assert(solver.data()->setLowerBound(r_values));
   assert(solver.data()->setUpperBound(r_values));
   assert(solver.initSolver());
   assert(solver.solve());
   right_params = solver.getSolution();
-  std::cout << "SOLUTION: \n" << right_params.transpose() << std::endl;
+//  std::cout << "SOLUTION: \n" << right_params.transpose() << std::endl;
 }
 
 void MinAccStateManager::interpolateVelocity(int idx, double dt,

@@ -17,6 +17,7 @@ class Angle {
   friend Angle operator*(const Angle &a, double p);
   friend Angle operator*(double p, const Angle &a);
   friend Angle operator/(const Angle &a, double p);
+  friend Angle operator/(const Angle &a, int p);
   friend bool operator==(Angle a, Angle b) { return a.angle_ == b.angle_; }
   friend bool operator==(Angle a, double b) { return a.angle_ == b; }
   friend bool operator==(double a, Angle b) { return b == a; }

@@ -10,6 +10,7 @@
 #include <yaml-cpp/yaml.h>
 #include "StateManager.h"
 #include <boost/program_options.hpp>
+#include "PlanVisualizer.h"
 using namespace std;
 
 int main(int argc, char **argv) {
@@ -17,7 +18,7 @@ int main(int argc, char **argv) {
   boost::program_options::options_description desc("Allowed options");
   desc.add_options()
       ("help", "produce help message")
-      ("sch,s", boost::program_options::value(&schedule_file)->required(), "schedule file (yaml)");
+      ("sch,s", boost::program_options::value(&schedule_file) /* ->required() */, "schedule file (yaml)");
   boost::program_options::variables_map vm;
   boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
   boost::program_options::notify(vm);
@@ -29,17 +30,19 @@ int main(int argc, char **argv) {
 //  shared_ptr<StateManager> sm;
   auto schedule = config["schedule"];
   std::vector<std::unique_ptr<FeedbackController>> controllers;
+  PlanVisualizer visualizer(nh);
   for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
     std::string key = iter->first.as<std::string>();
 //    key = "agent2";
     std::vector<std::pair<double, State>> t_states;
-    for (auto s : schedule[key]) {
+    for (auto s : iter->second) {
       auto t = s["t"].as<double>(), x = s["x"].as<double>(), y = s["y"].as<double>(), yaw = -s["yaw"].as<double>();
       t_states.emplace_back(t, State(x, y, yaw));
     }
+    visualizer.addPlan(t_states);
+
     // TODO: 2. FLUENT INTERPOLATION
 
-//    sm = make_shared<StateManager>(t_states);
     controllers.push_back(std::make_unique<FeedbackController>(nh, key, t_states));
 //    break;
   }
@@ -49,6 +52,7 @@ int main(int argc, char **argv) {
   nh.param("PUBLISHING_FREQUENCY", PUBLISHING_FREQUENCY, 50);
   auto rate = ros::Rate(PUBLISHING_FREQUENCY);
   while (ros::ok()) {
+    visualizer.publishOnce();
     for (auto &ptr : controllers) {
       ptr->spinOnce();
     }

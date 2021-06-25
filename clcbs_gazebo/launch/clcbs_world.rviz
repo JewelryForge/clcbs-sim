@@ -4,13 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /Status1
-        - /RobotModel1
-        - /RobotModel2
-        - /RobotModel3
-        - /RobotModel4
-        - /RobotModel5
+        - /Marker1
       Splitter Ratio: 0.5511022210121155
     Tree Height: 752
   - Class: rviz/Selection
@@ -54,7 +48,7 @@ Visualization Manager:
         Y: 0
         Z: 0
       Plane: XY
-      Plane Cell Count: 10
+      Plane Cell Count: 60
       Reference Frame: <Fixed Frame>
       Value: true
     - Alpha: 0.699999988079071
@@ -71,94 +65,111 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
         agent0/agent_leftwheel_link:
-          Value: true
+          Value: false
         agent0/agent_rightwheel_link:
-          Value: true
+          Value: false
         agent0/robot_base:
           Value: true
         agent0/robot_chassis:
+          Value: false
+        agent0_desired_state:
           Value: true
         agent1/agent_leftwheel_link:
-          Value: true
+          Value: false
         agent1/agent_rightwheel_link:
-          Value: true
+          Value: false
         agent1/robot_base:
           Value: true
         agent1/robot_chassis:
+          Value: false
+        agent1_desired_state:
           Value: true
         agent2/agent_leftwheel_link:
-          Value: true
+          Value: false
         agent2/agent_rightwheel_link:
-          Value: true
+          Value: false
         agent2/robot_base:
           Value: true
         agent2/robot_chassis:
+          Value: false
+        agent2_desired_state:
           Value: true
         agent3/agent_leftwheel_link:
-          Value: true
+          Value: false
         agent3/agent_rightwheel_link:
-          Value: true
+          Value: false
         agent3/robot_base:
           Value: true
         agent3/robot_chassis:
+          Value: false
+        agent3_desired_state:
           Value: true
         agent4/agent_leftwheel_link:
-          Value: true
+          Value: false
         agent4/agent_rightwheel_link:
-          Value: true
+          Value: false
         agent4/robot_base:
           Value: true
         agent4/robot_chassis:
+          Value: false
+        agent4_desired_state:
           Value: true
         map:
-          Value: true
-        world_base:
-          Value: true
-      Marker Scale: 4
+          Value: false
+      Marker Scale: 15
       Name: TF
       Show Arrows: true
       Show Axes: true
-      Show Names: true
+      Show Names: false
       Tree:
-        world_base:
-          map:
-            agent0/robot_base:
-              agent0/agent_leftwheel_link:
-                {}
-              agent0/agent_rightwheel_link:
-                {}
-              agent0/robot_chassis:
-                {}
-            agent1/robot_base:
-              agent1/agent_leftwheel_link:
-                {}
-              agent1/agent_rightwheel_link:
-                {}
-              agent1/robot_chassis:
-                {}
-            agent2/robot_base:
-              agent2/agent_leftwheel_link:
-                {}
-              agent2/agent_rightwheel_link:
-                {}
-              agent2/robot_chassis:
-                {}
-            agent3/robot_base:
-              agent3/agent_leftwheel_link:
-                {}
-              agent3/agent_rightwheel_link:
-                {}
-              agent3/robot_chassis:
-                {}
-            agent4/robot_base:
-              agent4/agent_leftwheel_link:
-                {}
-              agent4/agent_rightwheel_link:
-                {}
-              agent4/robot_chassis:
-                {}
+        map:
+          agent0/robot_base:
+            agent0/agent_leftwheel_link:
+              {}
+            agent0/agent_rightwheel_link:
+              {}
+            agent0/robot_chassis:
+              {}
+          agent0_desired_state:
+            {}
+          agent1/robot_base:
+            agent1/agent_leftwheel_link:
+              {}
+            agent1/agent_rightwheel_link:
+              {}
+            agent1/robot_chassis:
+              {}
+          agent1_desired_state:
+            {}
+          agent2/robot_base:
+            agent2/agent_leftwheel_link:
+              {}
+            agent2/agent_rightwheel_link:
+              {}
+            agent2/robot_chassis:
+              {}
+          agent2_desired_state:
+            {}
+          agent3/robot_base:
+            agent3/agent_leftwheel_link:
+              {}
+            agent3/agent_rightwheel_link:
+              {}
+            agent3/robot_chassis:
+              {}
+          agent3_desired_state:
+            {}
+          agent4/robot_base:
+            agent4/agent_leftwheel_link:
+              {}
+            agent4/agent_rightwheel_link:
+              {}
+            agent4/robot_chassis:
+              {}
+          agent4_desired_state:
+            {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -336,6 +347,14 @@ Visualization Manager:
       Update Interval: 0
       Value: true
       Visual Enabled: true
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /path_visualizer
+      Name: Marker
+      Namespaces:
+        "": true
+      Queue Size: 100
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -364,7 +383,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 50.44279479980469
+      Distance: 76.68666076660156
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1

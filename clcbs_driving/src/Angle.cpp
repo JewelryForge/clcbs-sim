@@ -45,6 +45,11 @@ Angle operator/(const Angle &a, double p) {
   c.normalize();
   return c;
 }
+Angle operator/(const Angle &a, int p) {
+  Angle c(a.angle_ / p);
+  c.normalize();
+  return c;
+}
 Angle Angle::operator/=(double p) {
   angle_ /= p;
   return *this;
