@@ -16,12 +16,14 @@ class FeedbackController {
   FeedbackController(ros::NodeHandle &nh, std::string name, const std::vector<std::pair<double, State>>& states);
   void start();
   void stateUpdate(const geometry_msgs::Pose::ConstPtr& p);
-  void spin();
+  bool isActive() const;
   void spinOnce();
   void publishOnce(const std::pair<double, double> &v);
   void calculateVelocityAndPublish();
+  static bool allActive();
 
  private:
+  static std::vector<const FeedbackController*> all_controller;
   ros::NodeHandle nh_;
   ros::Publisher left_pub_, right_pub_;
   ros::Subscriber state_sub_;

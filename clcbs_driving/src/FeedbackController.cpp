@@ -9,6 +9,8 @@
 
 #include "FeedbackController.h"
 
+std::vector<const FeedbackController *> FeedbackController::all_controller;
+
 FeedbackController::FeedbackController(ros::NodeHandle &nh, std::string name,
                                        const std::vector<std::pair<double, State>> &states)
     : name_(std::move(name)), model_(), pid1_(2, 0.1, 1.0), pid2_(2, 0.1, 1.0) {
@@ -18,6 +20,7 @@ FeedbackController::FeedbackController(ros::NodeHandle &nh, std::string name,
                                                   [this](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
   state_manager_ = std::make_unique<MinAccStateManager>(states);
   state_manager_->setAlignmentParam(-Constants::MAP_SIZE_X / 2, -Constants::MAP_SIZE_Y / 2);
+  all_controller.push_back(this);
 }
 void FeedbackController::start() {
   is_started_ = true;
@@ -28,17 +31,13 @@ void FeedbackController::stateUpdate(const geometry_msgs::Pose::ConstPtr &p) {
   Angle yaw(std::atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z)));
   curr_state_ = std::make_unique<State>(p->position.x, p->position.y, yaw);
 }
-void FeedbackController::spin() {
-  auto rate = ros::Rate(50);
-  while (ros::ok()) {
-    spinOnce();
-    rate.sleep();
-  }
+
+bool FeedbackController::isActive() const {
+  return curr_state_ != nullptr;
 }
 
 void FeedbackController::spinOnce() {
-  ros::spinOnce();
-  if (curr_state_ != nullptr) {
+  if (isActive()) {
     if (!is_started_) start();
     calculateVelocityAndPublish();
   }
@@ -82,4 +81,12 @@ void FeedbackController::calculateVelocityAndPublish() {
   }
   publishOnce(model_.getVelocity());
 }
+
+bool FeedbackController::allActive() {
+  for (auto c: all_controller) {
+    if (!c->isActive()) return false;
+  }
+  return true;
+}
+
 

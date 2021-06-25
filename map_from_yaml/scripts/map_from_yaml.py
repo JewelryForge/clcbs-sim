@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import yaml
 
-OBS_RADIUS = 0.0
+OBS_RADIUS = 0.6
 
 
 def main():

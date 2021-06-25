@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   YAML::Node config;
   ros::init(argc, argv, "CPP_TEST");
   ros::NodeHandle nh;
-  schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
+//  schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
   config = YAML::LoadFile(schedule_file);
 //  shared_ptr<StateManager> sm;
   auto schedule = config["schedule"];
@@ -52,6 +52,8 @@ int main(int argc, char **argv) {
   nh.param("PUBLISHING_FREQUENCY", PUBLISHING_FREQUENCY, 50);
   auto rate = ros::Rate(PUBLISHING_FREQUENCY);
   while (ros::ok()) {
+    ros::spinOnce();
+    if (!FeedbackController::allActive()) continue;
     visualizer.publishOnce();
     for (auto &ptr : controllers) {
       ptr->spinOnce(); // TODO: USE A CLOCK INSTEAD OF SERIAL CONTROL

@@ -4,6 +4,7 @@
 #include <ros/ros.h>
 #include <string>
 #include <visualization_msgs/Marker.h>
+#include <nav_msgs/Path.h>
 #include "StateManager.h"
 
 class PlanVisualizer {
@@ -13,9 +14,10 @@ class PlanVisualizer {
   void publishOnce();
  private:
   ros::NodeHandle nh_;
-  ros::Publisher path_publisher_;
+  ros::Publisher term_publisher_, path_publisher_;
   std::vector<visualization_msgs::Marker> markers_;
-  int counter = 0;
+  std::vector<nav_msgs::Path> paths_;
+  int counter_ = 0;
 };
 
 #endif //CLCBS_DRIVING_INCLUDE_PLANVISUALIZER_H_
