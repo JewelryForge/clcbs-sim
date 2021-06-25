@@ -65,6 +65,7 @@ class StateManager {
   explicit StateManager(const std::vector<std::pair<double, State>> &states);
   void setAlignmentParam(double x, double y);
   const Instruction &operator()(double t);
+  State start_state, terminal_state;
   bool finished = false;
  protected:
   virtual void interpolateVelocity(int idx, double dt, const std::pair<double, Transition> &s_p,
@@ -85,6 +86,7 @@ class MinAccStateManager : public StateManager {
  private:
   void interpolateVelocity(int idx, double dt, const std::pair<double, Transition> &s_p,
                            const std::pair<double, Transition> &s_n) override;
+  Angle init_yaw;
   Eigen::VectorXd left_params, right_params;
 };
 

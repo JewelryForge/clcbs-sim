@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
   std::vector<std::unique_ptr<FeedbackController>> controllers;
   for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
     std::string key = iter->first.as<std::string>();
-    key = "agent1";
+    key = "agent2";
     std::vector<std::pair<double, State>> t_states;
     for (auto s : schedule[key]) {
       auto t = s["t"].as<double>(), x = s["x"].as<double>(), y = s["y"].as<double>(), yaw = -s["yaw"].as<double>();

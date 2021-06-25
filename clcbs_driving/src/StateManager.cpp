@@ -50,7 +50,9 @@ Eigen::Vector3d State::oritUnit3() const {
   return {cos(yaw), sin(yaw), 0};
 }
 StateManager::StateManager(const std::vector<std::pair<double, State>> &states)
-    : align([](const State &s) { return s; }) {
+    : start_state(states.front().second),
+      terminal_state(states.back().second),
+      align([](const State &s) { return s; }) {
   assert(states.size() >= 2 and states.front().first == 0);
   logs_.reserve(states.size());
   for (auto curr = states.begin(), next = curr + 1;; curr = next, ++next) {
@@ -131,6 +133,7 @@ const Instruction &StateManager::operator()(double t) {
 
 
 
+
 //State StateManager::getState(double t) {
 //  if (t <= 0) {
 //    return states_.front().second;
@@ -197,7 +200,7 @@ void Poly3StateManager::interpolateVelocity(int,
 }
 
 MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State>> &states) :
-    StateManager(states) {
+    StateManager(states), init_yaw(states.front().second.yaw) {
   Eigen::SparseMatrix<double> hessian, constrains;
   Eigen::VectorXd l_values, r_values;
   Eigen::VectorXd gradient;
@@ -309,5 +312,5 @@ void MinAccStateManager::interpolateVelocity(int idx, double dt,
   double vr = coeff * right_params.block<6, 1>(idx * 6, 0);
   double xr = dt_pow * right_params.block<6, 1>(idx * 6, 0);
   instruction_.des_velocity = {vl, vr};
-  instruction_.des_state = {0, 0, (xr - xl) / Constants::CAR_WIDTH};
+  instruction_.des_state = {0, 0, (xr - xl) / Constants::CAR_WIDTH + init_yaw};
 }

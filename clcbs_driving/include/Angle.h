@@ -5,6 +5,7 @@
 
 class Angle {
  public:
+  Angle() = default;
   explicit Angle(double angle);
   static Angle Degree(double degree);
 

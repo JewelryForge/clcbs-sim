@@ -24,9 +24,8 @@ void FeedbackController::start() {
   t_start_ = ros::Time::now();
 }
 void FeedbackController::stateUpdate(const geometry_msgs::Pose::ConstPtr &p) {
-  auto &o = p->orientation;
-  Eigen::Quaterniond q(o.w, o.x, o.y, o.z);
-  Angle yaw(atan2(2 * (q.w() * q.z() + q.x() * q.y()), 1 - 2 * (q.x() * q.x()) + q.y() * q.y()));
+  const auto &q = p->orientation;
+  Angle yaw(std::atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z)));
   curr_state_ = std::make_unique<State>(p->position.x, p->position.y, yaw);
 }
 void FeedbackController::spin() {
@@ -67,14 +66,17 @@ void FeedbackController::calculateVelocityAndPublish() {
 
   // TODO: CLOSE LOOP
   if (state_manager_->finished) {
+    model_.reset();
     publishOnce({0.0, 0.0});
-//    model_.reset();
     ROS_INFO_STREAM("FINISHED");
   } else {
     //TODO: USE DIFF OF LEFT_X AND RIGHT_X TO CALCULATE DES_YAW
     //TODO: FINISH A FEEDFORWARD AND A FEEDBACK LOOP
     double vl, vr;
     std::tie(vl, vr) = des.des_velocity;
+    State diff_state = interp_state - *curr_state_;
+    Angle heading_deviation = Angle(std::atan2(diff_state.y, diff_state.x)) - des.des_state.yaw;
+    Angle des_yaw_deviation = heading_deviation - curr_state_->yaw;
     double vx = (vl + vr) / 2, vw = (vr - vl) / Constants::CAR_WIDTH;
     double delta_yaw = des.des_state.yaw - curr_state_->yaw;
     model_.setVx(vx);
@@ -83,7 +85,8 @@ void FeedbackController::calculateVelocityAndPublish() {
 //    vr += 2.0 * delta_yaw * Constants::CAR_WIDTH / 2;
     std::tie(vl, vr) = model_.getVelocity();
     publishOnce(model_.getVelocity());
-    ROS_INFO_STREAM((vr - vl) / Constants::CAR_WIDTH << " D_YAW: " << des.des_state.yaw << ' ' << curr_state_->yaw);
+//    ROS_INFO_STREAM(state_manager_->start_state.yaw);
+    ROS_INFO_STREAM((vr - vl) / Constants::CAR_WIDTH << " YAW: " << des.des_state.yaw << ' ' << curr_state_->yaw);
 
 //    State diff_state = interp_state - *curr_state_;
 //    ROS_INFO_STREAM(vx << ' ' << vw);
