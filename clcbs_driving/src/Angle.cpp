@@ -8,50 +8,14 @@ Angle::Angle(double angle) : angle_(angle) {
 Angle Angle::Degree(double degree) {
   return Angle(degree * M_PI / 180);
 }
-Angle operator+(const Angle &a, const Angle &b) {
-  Angle c(a.angle_ + b.angle_);
-  c.normalize();
-  return c;
-}
 Angle Angle::operator+=(Angle b) {
   angle_ += b.angle_;
   normalize();
   return *this;
 }
-Angle operator-(const Angle &a, const Angle &b) {
-  Angle c(a.angle_ - b.angle_);
-  c.normalize();
-  return c;
-}
 Angle Angle::operator-=(Angle b) {
   angle_ -= b.angle_;
   normalize();
-  return *this;
-}
-Angle operator*(const Angle &a, double p) {
-  Angle c(a.angle_ * p);
-  c.normalize();
-  return c;
-}
-Angle operator*(double p, const Angle &a) {
-  return a * p;
-}
-Angle Angle::operator*=(double p) {
-  angle_ *= p;
-  return *this;
-}
-Angle operator/(const Angle &a, double p) {
-  Angle c(a.angle_ / p);
-  c.normalize();
-  return c;
-}
-Angle operator/(const Angle &a, int p) {
-  Angle c(a.angle_ / p);
-  c.normalize();
-  return c;
-}
-Angle Angle::operator/=(double p) {
-  angle_ /= p;
   return *this;
 }
 std::ostream &operator<<(std::ostream &os, const Angle &a) {

@@ -29,6 +29,7 @@ void PlanVisualizer::addPlan(const std::vector<std::pair<double, State>> &states
   marker.scale.x = Constants::CAR_LENGTH;
   marker.scale.y = Constants::CAR_WIDTH;
   marker.scale.z = 0.1;
+  std::cout << term_state.yaw << term_state.yaw / 2 << std::endl;
   marker.pose.orientation.w = std::cos(term_state.yaw / 2);
   marker.pose.orientation.z = std::sin(term_state.yaw / 2);
   markers_.push_back(marker);

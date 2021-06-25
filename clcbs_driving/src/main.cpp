@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   YAML::Node config;
   ros::init(argc, argv, "CPP_TEST");
   ros::NodeHandle nh;
-//  schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
+  schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
   config = YAML::LoadFile(schedule_file);
 //  shared_ptr<StateManager> sm;
   auto schedule = config["schedule"];
@@ -33,9 +33,9 @@ int main(int argc, char **argv) {
   PlanVisualizer visualizer(nh);
   for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
     std::string key = iter->first.as<std::string>();
-//    key = "agent2";
+//    key = "agent4";
     std::vector<std::pair<double, State>> t_states;
-    for (auto s : iter->second) {
+    for (auto s : schedule[key]/* iter->second */) {
       auto t = s["t"].as<double>(), x = s["x"].as<double>(), y = s["y"].as<double>(), yaw = -s["yaw"].as<double>();
       t_states.emplace_back(t, State(x, y, yaw));
     }
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
   while (ros::ok()) {
     visualizer.publishOnce();
     for (auto &ptr : controllers) {
-      ptr->spinOnce();
+      ptr->spinOnce(); // TODO: USE A CLOCK INSTEAD OF SERIAL CONTROL
     }
     rate.sleep();
   }
