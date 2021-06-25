@@ -4,6 +4,7 @@
 #include "Constants.h"
 class CarModel {
  public:
+  friend class FeedbackController;
   CarModel();
   explicit CarModel(double rotation_radius);
   void setThr(double thr);
