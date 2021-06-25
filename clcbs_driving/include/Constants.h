@@ -2,7 +2,7 @@
 
 namespace Constants {
 
-static double MINIMUM_ROTATION_RADIUS = 1.5;
+static double MINIMUM_ROTATION_RADIUS = 2.0;
 static double MAXIMUM_LINEAR_VELOCITY = 4.0;
 static double WHEEL_RADIUS = 0.5;
 static double CAR_WIDTH = 2.0;
