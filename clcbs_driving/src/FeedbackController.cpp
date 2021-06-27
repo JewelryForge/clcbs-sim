@@ -13,7 +13,7 @@ std::vector<FeedbackController *> FeedbackController::all_controller_;
 
 FeedbackController::FeedbackController(ros::NodeHandle &nh, std::string name,
                                        const std::vector<std::pair<double, State>> &states)
-    : name_(std::move(name)), model_(), pid1_(2, 0.1, 1.0), pid2_(2, 0.1, 1.0) {
+    : name_(std::move(name)), model_() {
   left_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/left_wheel_controller/command", 1);
   right_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/right_wheel_controller/command", 1);
   state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/" + name_ + "/robot_base", 1,
@@ -105,6 +105,9 @@ void FeedbackController::calculateVelocityAndPublishBase(double dt) {
     ROS_INFO_STREAM(name_ << " TRACING " << model_.getVelocity());
   }
   publishOnce(model_.getVelocity());
+}
+void FeedbackController::registerAll(double rate) {
+//  ros::Timer timer
 }
 
 

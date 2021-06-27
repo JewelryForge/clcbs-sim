@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
   PlanVisualizer visualizer(nh);
   for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
     std::string key = iter->first.as<std::string>();
-//    key = "agent2";
+    key = "agent2";
     std::vector<std::pair<double, State>> t_states;
     for (auto s : schedule[key]/* iter->second */) {
       auto t = s["t"].as<double>(), x = s["x"].as<double>(), y = s["y"].as<double>(), yaw = -s["yaw"].as<double>();
@@ -43,13 +43,14 @@ int main(int argc, char **argv) {
 
     // TODO: 2. FLUENT INTERPOLATION
     controllers.push_back(std::make_unique<FeedbackController>(nh, key, t_states));
-//    break;
+    break;
   }
+
   ROS_INFO("SETTING UP FINISHED");
 
   ros::Duration(0.5).sleep();
   visualizer.publishOnce();
-//  ros::Duration(0.5).sleep();
+  ros::Duration(2).sleep();
   while(!FeedbackController::activateAll());
   auto rate = ros::Rate(50);
   while (ros::ok()) {
