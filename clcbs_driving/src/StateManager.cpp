@@ -51,8 +51,7 @@ Eigen::Vector3d State::oritUnit3() const {
 }
 StateManager::StateManager(const std::vector<std::pair<double, State>> &states)
     : start_state(states.front().second),
-      terminal_state(states.back().second),
-      align([](const State &s) { return s; }) {
+      terminal_state(states.back().second){
   assert(states.size() >= 2 and states.front().first == 0);
   logs_.reserve(states.size());
   for (auto curr = states.begin(), next = curr + 1;; curr = next, ++next) {
@@ -98,10 +97,6 @@ void StateManager::interpolateVelocity(int idx, double dt,
   instruction_.des_velocity = s_n.second.v;
 }
 
-void StateManager::setAlignmentParam(double x, double y) {
-  align = [=](const State &s) { return State(s.x + x, s.y + y, s.yaw); };
-}
-
 const Instruction &StateManager::operator()(double t) {
   if (t <= 0) {
     instruction_.operation = Move::STOP;
@@ -124,9 +119,9 @@ const Instruction &StateManager::operator()(double t) {
     instruction_.des_state = instruction_.local_dest = logs_.back().second.state;
     instruction_.des_velocity = {0.0, 0.0};
   }
-  instruction_.des_state = align(instruction_.des_state);
-  instruction_.local_dest = align(instruction_.local_dest);
-  instruction_.global_dest = align(logs_.back().second.state);
+//  instruction_.des_state = align(instruction_.des_state);
+//  instruction_.local_dest = align(instruction_.local_dest);
+  instruction_.global_dest = logs_.back().second.state;
   return instruction_;
 }
 

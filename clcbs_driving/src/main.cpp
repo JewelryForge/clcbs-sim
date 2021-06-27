@@ -36,8 +36,8 @@ int main(int argc, char **argv) {
     // key = "agent2";
     std::vector<std::pair<double, State>> t_states;
     for (auto s : schedule[key]/* iter->second */) {
-      auto t = s["t"].as<double>(), x = s["x"].as<double>(), y = s["y"].as<double>(), yaw = -s["yaw"].as<double>();
-      t_states.emplace_back(t, State(x, y, yaw));
+      auto t = s["t"].as<double>(), x = s["x"].as<double>(), y = s["y"].as<double>(), yaw = s["yaw"].as<double>();
+      t_states.emplace_back(t, State(x - Constants::MAP_SIZE_X / 2, y - Constants::MAP_SIZE_Y / 2, -yaw));
     }
     visualizer.addPlan(t_states);
     controllers.push_back(std::make_unique<FeedbackController>(nh, key, t_states));

@@ -63,7 +63,6 @@ struct Transition {
 class StateManager {
  public:
   explicit StateManager(const std::vector<std::pair<double, State>> &states);
-  void setAlignmentParam(double x, double y);
   const Instruction &operator()(double t);
   State start_state, terminal_state;
   bool finished = false;
@@ -72,7 +71,6 @@ class StateManager {
                                    const std::pair<double, Transition> &s_n);
   Instruction instruction_;
   std::vector<std::pair<double, Transition>> logs_;
-  std::function<State(const State &)> align;
 };
 
 class Poly3StateManager : public StateManager {

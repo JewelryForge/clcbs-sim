@@ -19,7 +19,7 @@ FeedbackController::FeedbackController(ros::NodeHandle &nh, std::string name,
   state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/" + name_ + "/robot_base", 1,
                                                   [=](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
   state_manager_ = std::make_unique<MinAccStateManager>(states);
-  state_manager_->setAlignmentParam(-Constants::MAP_SIZE_X / 2, -Constants::MAP_SIZE_Y / 2);
+//  state_manager_->setAlignmentParam(-Constants::MAP_SIZE_X / 2, -Constants::MAP_SIZE_Y / 2);
   all_controller_.push_back(this);
 }
 
