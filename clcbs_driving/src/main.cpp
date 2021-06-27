@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   YAML::Node config;
   ros::init(argc, argv, "CPP_TEST");
   ros::NodeHandle nh;
-//  schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
+  schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
   config = YAML::LoadFile(schedule_file);
 //  shared_ptr<StateManager> sm;
   auto schedule = config["schedule"];
@@ -42,23 +42,22 @@ int main(int argc, char **argv) {
     visualizer.addPlan(t_states);
 
     // TODO: 2. FLUENT INTERPOLATION
-
     controllers.push_back(std::make_unique<FeedbackController>(nh, key, t_states));
 //    break;
   }
   ROS_INFO("SETTING UP FINISHED");
 
-  int PUBLISHING_FREQUENCY;
-  nh.param("PUBLISHING_FREQUENCY", PUBLISHING_FREQUENCY, 50);
-  auto rate = ros::Rate(PUBLISHING_FREQUENCY);
+  auto rate = ros::Rate(50);
+  ros::Duration(0.5).sleep();
+  visualizer.publishOnce();
+  ros::Duration(0.5).sleep();
   while (ros::ok()) {
     ros::spinOnce();
     if (!FeedbackController::allActive()) continue;
-    visualizer.publishOnce();
     for (auto &ptr : controllers) {
       ptr->spinOnce(); // TODO: USE A CLOCK INSTEAD OF SERIAL CONTROL
     }
     rate.sleep();
-  }
+}
 
 }

@@ -20,10 +20,12 @@ class FeedbackController {
   void spinOnce();
   void publishOnce(const std::pair<double, double> &v);
   void calculateVelocityAndPublish();
+  void calculateVelocityAndPublish(const ros::TimerEvent e);
   static bool allActive();
 
  private:
   static std::vector<const FeedbackController*> all_controller;
+  void calculateVelocityAndPublishBase(double dt);
   ros::NodeHandle nh_;
   ros::Publisher left_pub_, right_pub_;
   ros::Subscriber state_sub_;
@@ -32,7 +34,7 @@ class FeedbackController {
   std::unique_ptr<State> curr_state_;
   double ROTATION_RADIUS{};
   std::string name_;
-  bool is_started_{false};
+  bool is_started_{false}, is_finished_{false};
   std::unique_ptr<StateManager> state_manager_;
   PID pid1_, pid2_;
   ros::Time t_start_{};

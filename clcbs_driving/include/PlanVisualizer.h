@@ -14,7 +14,7 @@ class PlanVisualizer {
   void publishOnce();
  private:
   ros::NodeHandle nh_;
-  ros::Publisher term_publisher_, path_publisher_;
+  ros::Publisher path_publisher_;
   std::vector<visualization_msgs::Marker> markers_;
   std::vector<nav_msgs::Path> paths_;
   int counter_ = 0;

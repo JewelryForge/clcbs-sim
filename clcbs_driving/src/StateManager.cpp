@@ -32,7 +32,7 @@ double State::norm() const {
   return std::hypot(x, y);
 }
 double State::diff() const {
-  return yaw == 0. ? norm() : norm() / (2 * sin(yaw / 2.)) * yaw;
+  return yaw == 0. ? norm() : (norm() / (2 * sin(yaw / 2)) * yaw);
 }
 std::tuple<double, double, Angle> State::asTuple() const {
   return {x, y, yaw};
@@ -128,6 +128,7 @@ const Instruction &StateManager::operator()(double t) {
   }
   instruction_.interp_state = align(instruction_.interp_state);
   instruction_.goal = align(instruction_.goal);
+  instruction_.terminal = align(logs_.back().second.state);
   return instruction_;
 }
 

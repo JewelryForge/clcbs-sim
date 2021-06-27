@@ -46,7 +46,7 @@ std::string move2str(MoveType m);
 
 struct Instruction {
   Move::MoveType operation = Move::STOP;
-  State interp_state, goal, des_state;
+  State interp_state, goal, des_state, terminal; //TODO: REMOVE INTERP_STATE
   std::pair<double, double> des_velocity;
 };
 

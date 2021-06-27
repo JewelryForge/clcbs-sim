@@ -63,21 +63,38 @@ void FeedbackController::calculateVelocityAndPublish() {
   transform.setRotation(q);
   tf_broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", name_ + "_desired_state"));
 
-  State diff_state = interp_state - *curr_state_;
-  if (state_manager_->finished) {
-    model_.reset();
-    // TODO: DYNAMIC PATH PLANNING USING REEDS-SHEPP CURVES
-    ROS_INFO_STREAM("TUNING");
+  if (is_finished_) {
+    publishOnce({0, 0});
+    return;
+  }
+  if (state_manager_->finished or (des.terminal - *curr_state_).norm() < 2.0) {
+    State diff_state = des.terminal - *curr_state_;
+    double heading_deviation = Angle(std::atan2(diff_state.y, diff_state.x)) - curr_state_->yaw;
+    double delta_yaw = diff_state.yaw;
+    if (diff_state.norm() < 0.2 && delta_yaw < M_PI / 24) {
+      model_.reset();
+      is_finished_ = true;
+      ROS_INFO_STREAM(name_ << " FINISHED " << delta_yaw);
+    } else {
+      if (std::abs(heading_deviation) > M_PI_2) heading_deviation = Angle(heading_deviation + M_PI);
+      model_.setVx(1.0 * sign(diff_state.asVector2().dot(curr_state_->oritUnit2())) * diff_state.diff());
+      model_.setVw(4.0 * delta_yaw + 1.0 * heading_deviation * diff_state.norm());
+      // TODO: DYNAMIC PATH PLANNING USING REEDS-SHEPP CURVES
+      ROS_INFO_STREAM(name_ << " TUNING ");
+    }
   } else {
     double vl, vr;
     std::tie(vl, vr) = des.des_velocity;
+    State diff_state = interp_state - *curr_state_;
     double heading_deviation = Angle(std::atan2(diff_state.y, diff_state.x)) - curr_state_->yaw;
+    if (std::abs(heading_deviation) > M_PI_2) {
+      heading_deviation = Angle(heading_deviation + M_PI);
+    }
     double vx = (vl + vr) / 2, vw = (vr - vl) / Constants::CAR_WIDTH;
     double delta_yaw = des.des_state.yaw - curr_state_->yaw;
     model_.setVx(vx + 1.0 * sign(vx) * diff_state.asVector2().dot(curr_state_->oritUnit2()));
     model_.setVw(vw + 6.0 * delta_yaw + 1.0 * heading_deviation * diff_state.norm());
-    std::tie(vl, vr) = model_.getVelocity();
-    ROS_INFO_STREAM(model_.ort_ << '\t' << vw << '\t' << delta_yaw << '\t' << heading_deviation);
+    ROS_INFO_STREAM(name_ << '\t' << model_.getVelocity());
   }
   publishOnce(model_.getVelocity());
 }
@@ -87,6 +104,12 @@ bool FeedbackController::allActive() {
     if (!c->isActive()) return false;
   }
   return true;
+}
+void FeedbackController::calculateVelocityAndPublish(const ros::TimerEvent) {
+
+}
+void FeedbackController::calculateVelocityAndPublishBase(double dt) {
+
 }
 
 
