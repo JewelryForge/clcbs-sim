@@ -128,7 +128,7 @@ const Instruction &StateManager::operator()(double t) {
   }
   instruction_.interp_state = align(instruction_.interp_state);
   instruction_.goal = align(instruction_.goal);
-  instruction_.terminal = align(logs_.back().second.state);
+  instruction_.dest = align(logs_.back().second.state);
   return instruction_;
 }
 

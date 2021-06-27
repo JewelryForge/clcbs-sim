@@ -25,15 +25,16 @@ int main(int argc, char **argv) {
   YAML::Node config;
   ros::init(argc, argv, "CPP_TEST");
   ros::NodeHandle nh;
-  schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
+  // schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
   config = YAML::LoadFile(schedule_file);
 //  shared_ptr<StateManager> sm;
   auto schedule = config["schedule"];
   std::vector<std::unique_ptr<FeedbackController>> controllers;
   PlanVisualizer visualizer(nh);
+  int i = 0;
   for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
     std::string key = iter->first.as<std::string>();
-    key = "agent2";
+    // key = "agent2";
     std::vector<std::pair<double, State>> t_states;
     for (auto s : schedule[key]/* iter->second */) {
       auto t = s["t"].as<double>(), x = s["x"].as<double>(), y = s["y"].as<double>(), yaw = -s["yaw"].as<double>();
@@ -43,7 +44,7 @@ int main(int argc, char **argv) {
 
     // TODO: 2. FLUENT INTERPOLATION
     controllers.push_back(std::make_unique<FeedbackController>(nh, key, t_states));
-    break;
+    if (++i == 3) break;
   }
 
   ROS_INFO("SETTING UP FINISHED");
@@ -52,7 +53,7 @@ int main(int argc, char **argv) {
   visualizer.publishOnce();
   ros::Duration(2).sleep();
   while(!FeedbackController::activateAll());
-  auto rate = ros::Rate(50);
+  auto rate = ros::Rate(25);
   while (ros::ok()) {
     ros::spinOnce();
 //    if (!FeedbackController::allActive()) continue;

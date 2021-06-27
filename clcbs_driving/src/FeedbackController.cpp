@@ -75,14 +75,16 @@ void FeedbackController::calculateVelocityAndPublishBase(double dt) {
     publishOnce({0, 0});
     return;
   }
-  if (state_manager_->finished or (des.terminal - *curr_state_).norm() < 2.0) {
-    State diff_state = des.terminal - *curr_state_;
+  State dest_diff = des.dest - *curr_state_, interp_diff = interp_state - *curr_state_;
+  
+  if (state_manager_->finished or (des.dest - *curr_state_).norm() < 2.0) {
+    State diff_state = des.dest - *curr_state_;
     double heading_deviation = Angle(std::atan2(diff_state.y, diff_state.x)) - curr_state_->yaw;
     double delta_yaw = diff_state.yaw;
-    if (diff_state.norm() < 0.2 && delta_yaw < M_PI / 24) {
+    if (std::abs(diff_state.asVector2().dot(curr_state_->oritUnit2())) < 0.1 && std::abs(delta_yaw) < M_PI / 24) {
       model_.reset();
       is_finished_ = true;
-      ROS_INFO_STREAM(name_ << " FINISHED " << delta_yaw);
+      ROS_INFO_STREAM(name_ << " FINISHED " << diff_state);
     } else {
       if (std::abs(heading_deviation) > M_PI_2) heading_deviation = Angle(heading_deviation + M_PI);
       model_.setVx(1.0 * sign(diff_state.asVector2().dot(curr_state_->oritUnit2())) * diff_state.diff());
