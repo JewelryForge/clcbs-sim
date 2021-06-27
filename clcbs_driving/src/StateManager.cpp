@@ -165,70 +165,76 @@ void Poly3StateManager::interpolateVelocity(int,
 MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State>> &states) :
     StateManager(states), init_yaw(states.front().second.yaw) {
   Eigen::SparseMatrix<double> hessian, constrains;
-  Eigen::VectorXd l_values, r_values;
+  Eigen::Matrix<double, -1, 2> constants;
   Eigen::VectorXd gradient;
   unsigned long k = logs_.size() - 1;
   int number_of_variables = 6 * k;
   int number_of_constrains = 4 * k + 2;
   hessian.resize(number_of_variables, number_of_variables);
   constrains.resize(number_of_constrains, number_of_variables);
-  l_values.resize(number_of_constrains);
-  r_values.resize(number_of_constrains);
+  constants.resize(number_of_constrains, 2);
   gradient.resize(number_of_variables);
-  l_values.setZero();
-  r_values.setZero();
+  constants.setZero();
   gradient.setZero();
 
-  int idx = 0, constrain_count = 0;
-  std::pair<double, double> accumulated_x{0.0, 0.0};
+  const static double coeff[4][4]{
+      {4, 6, 8, 10},
+      {6, 12, 18, 24},
+      {8, 18, 144. / 5, 40},
+      {10, 24, 40, 400. / 7}
+  };
+  int idx = 0, constrain_counter = 0;
+  Eigen::Vector2d accumulated_x = Eigen::Vector2d::Zero();
   for (auto curr = logs_.begin(), next = curr + 1; next != logs_.end(); curr = next, ++next, ++idx) {
     double dt = next->first - curr->first;
     double dt_pow[8]{1};
     for (int i = 1; i < 8; i++) dt_pow[i] = dt_pow[i - 1] * dt;
-    hessian.insert(2 + 6 * idx, 2 + 6 * idx) = 4 * dt_pow[1];
-    hessian.insert(3 + 6 * idx, 2 + 6 * idx) = 6 * dt_pow[2];
-    hessian.insert(4 + 6 * idx, 2 + 6 * idx) = 8 * dt_pow[3];
-    hessian.insert(5 + 6 * idx, 2 + 6 * idx) = 10 * dt_pow[4];
-    hessian.insert(2 + 6 * idx, 3 + 6 * idx) = 6 * dt_pow[2];
-    hessian.insert(3 + 6 * idx, 3 + 6 * idx) = 12 * dt_pow[3];
-    hessian.insert(4 + 6 * idx, 3 + 6 * idx) = 18 * dt_pow[4];
-    hessian.insert(5 + 6 * idx, 3 + 6 * idx) = 24 * dt_pow[5];
-    hessian.insert(2 + 6 * idx, 4 + 6 * idx) = 8 * dt_pow[3];
-    hessian.insert(3 + 6 * idx, 4 + 6 * idx) = 18 * dt_pow[4];
-    hessian.insert(4 + 6 * idx, 4 + 6 * idx) = 144. / 5 * dt_pow[5];
-    hessian.insert(5 + 6 * idx, 4 + 6 * idx) = 40 * dt_pow[6];
-    hessian.insert(2 + 6 * idx, 5 + 6 * idx) = 10 * dt_pow[4];
-    hessian.insert(3 + 6 * idx, 5 + 6 * idx) = 24 * dt_pow[5];
-    hessian.insert(4 + 6 * idx, 5 + 6 * idx) = 40 * dt_pow[6];
-    hessian.insert(5 + 6 * idx, 5 + 6 * idx) = 400. / 7 * dt_pow[7];
-    constrains.insert(constrain_count, 6 * idx) = 1; // x0
-    l_values(constrain_count) = accumulated_x.first;
-    r_values(constrain_count) = accumulated_x.second;
-    constrain_count++;
-    if (idx == 0) {
-      constrains.insert(constrain_count++, 1 + 6 * idx) = 1;
-      constrains.insert(constrain_count++, 2 + 6 * idx) = 2;
+    int shifting = 6 * idx;
+    for (int i = 0; i < 4; i++) {
+      for (int j = 0; j < 4; j++)
+        hessian.insert(2 + j + shifting, 2 + i + shifting) = coeff[i][j] * dt_pow[i + j + 1];
     }
-    for (int i = 0; i < 6; i++) constrains.insert(constrain_count, i + 6 * idx) = dt_pow[i]; // xt
-    accumulated_x.first += curr->second.x(0);
-    accumulated_x.second += curr->second.x(1);
-    l_values(constrain_count) = accumulated_x.first;
-    r_values(constrain_count) = accumulated_x.second;
-    constrain_count++;
+//    hessian.insert(2 + 6 * idx, 2 + 6 * idx) = 4 * dt_pow[1];
+//    hessian.insert(3 + 6 * idx, 2 + 6 * idx) = 6 * dt_pow[2];
+//    hessian.insert(4 + 6 * idx, 2 + 6 * idx) = 8 * dt_pow[3];
+//    hessian.insert(5 + 6 * idx, 2 + 6 * idx) = 10 * dt_pow[4];
+//    hessian.insert(2 + 6 * idx, 3 + 6 * idx) = 6 * dt_pow[2];
+//    hessian.insert(3 + 6 * idx, 3 + 6 * idx) = 12 * dt_pow[3];
+//    hessian.insert(4 + 6 * idx, 3 + 6 * idx) = 18 * dt_pow[4];
+//    hessian.insert(5 + 6 * idx, 3 + 6 * idx) = 24 * dt_pow[5];
+//    hessian.insert(2 + 6 * idx, 4 + 6 * idx) = 8 * dt_pow[3];
+//    hessian.insert(3 + 6 * idx, 4 + 6 * idx) = 18 * dt_pow[4];
+//    hessian.insert(4 + 6 * idx, 4 + 6 * idx) = 144. / 5 * dt_pow[5];
+//    hessian.insert(5 + 6 * idx, 4 + 6 * idx) = 40 * dt_pow[6];
+//    hessian.insert(2 + 6 * idx, 5 + 6 * idx) = 10 * dt_pow[4];
+//    hessian.insert(3 + 6 * idx, 5 + 6 * idx) = 24 * dt_pow[5];
+//    hessian.insert(4 + 6 * idx, 5 + 6 * idx) = 40 * dt_pow[6];
+//    hessian.insert(5 + 6 * idx, 5 + 6 * idx) = 400. / 7 * dt_pow[7];
+    constrains.insert(constrain_counter, 6 * idx) = 1; // x0
+    constants.block<1, 2>(constrain_counter, 0) = accumulated_x.transpose();
+    constrain_counter++;
+    if (idx == 0) {
+      constrains.insert(constrain_counter++, 1 + 6 * idx) = 1;
+      constrains.insert(constrain_counter++, 2 + 6 * idx) = 2;
+    }
+    for (int i = 0; i < 6; i++) constrains.insert(constrain_counter, i + 6 * idx) = dt_pow[i]; // xt
+    accumulated_x += curr->second.x;
+    constants.block<1, 2>(constrain_counter, 0) = accumulated_x.transpose();
+    constrain_counter++;
     if (idx < k - 1) {
-      for (int i = 1; i < 6; i++) constrains.insert(constrain_count, i + 6 * idx) = i * dt_pow[i - 1]; // v continuity
-      constrains.insert(constrain_count, 7 + 6 * idx) = -1;
-      constrain_count++;
+      for (int i = 1; i < 6; i++) constrains.insert(constrain_counter, i + 6 * idx) = i * dt_pow[i - 1]; // v continuity
+      constrains.insert(constrain_counter, 7 + 6 * idx) = -1;
+      constrain_counter++;
       for (int i = 2; i < 6; i++)
-        constrains.insert(constrain_count, i + 6 * idx) = i * (i - 1) * dt_pow[i - 2]; // a continuity
-      constrains.insert(constrain_count, 8 + 6 * idx) = -2;
-      constrain_count++;
+        constrains.insert(constrain_counter, i + 6 * idx) = i * (i - 1) * dt_pow[i - 2]; // a continuity
+      constrains.insert(constrain_counter, 8 + 6 * idx) = -2;
+      constrain_counter++;
     } else {
-      for (int i = 1; i < 6; i++) constrains.insert(constrain_count, i + 6 * idx) = i * dt_pow[i - 1]; // vf
-      constrain_count++;
+      for (int i = 1; i < 6; i++) constrains.insert(constrain_counter, i + 6 * idx) = i * dt_pow[i - 1]; // vf
+      constrain_counter++;
       for (int i = 2; i < 6; i++)
-        constrains.insert(constrain_count, i + 6 * idx) = i * (i - 1) * dt_pow[i - 2]; // af
-      constrain_count++;
+        constrains.insert(constrain_counter, i + 6 * idx) = i * (i - 1) * dt_pow[i - 2]; // af
+      constrain_counter++;
     }
   }
 
@@ -246,15 +252,15 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
   assert(solver.data()->setHessianMatrix(hessian));
   assert(solver.data()->setGradient(gradient));
   assert(solver.data()->setLinearConstraintsMatrix(constrains));
-  assert(solver.data()->setLowerBound(l_values));
-  assert(solver.data()->setUpperBound(l_values));
+  assert(solver.data()->setLowerBound(constants.col(0)));
+  assert(solver.data()->setUpperBound(constants.col(0)));
   assert(solver.initSolver());
   assert(solver.solve());
   left_params = solver.getSolution();
 //  std::cout << "SOLUTION: \n" << left_params.transpose() << std::endl;
   solver.clearSolver();
-  assert(solver.data()->setLowerBound(r_values));
-  assert(solver.data()->setUpperBound(r_values));
+  assert(solver.data()->setLowerBound(constants.col(1)));
+  assert(solver.data()->setUpperBound(constants.col(1)));
   assert(solver.initSolver());
   assert(solver.solve());
   right_params = solver.getSolution();
