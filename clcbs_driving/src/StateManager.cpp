@@ -49,9 +49,7 @@ Eigen::Vector2d State::oritUnit2() const {
 Eigen::Vector3d State::oritUnit3() const {
   return {cos(yaw), sin(yaw), 0};
 }
-StateManager::StateManager(const std::vector<std::pair<double, State>> &states)
-    : start_state(states.front().second),
-      terminal_state(states.back().second){
+StateManager::StateManager(const std::vector<std::pair<double, State>> &states) {
   assert(states.size() >= 2 and states.front().first == 0);
   logs_.reserve(states.size());
   for (auto curr = states.begin(), next = curr + 1;; curr = next, ++next) {
@@ -86,7 +84,6 @@ StateManager::StateManager(const std::vector<std::pair<double, State>> &states)
 
     if (curr == states.begin()) t.v = {0.0, 0.0};
     else t.v = t.x / dt;
-
     logs_.emplace_back(curr->first, t);
   }
 //  std::cout << logs << std::endl;
@@ -100,7 +97,7 @@ void StateManager::interpolateVelocity(int idx, double dt,
 const Instruction &StateManager::operator()(double t) {
   if (t <= 0) {
     instruction_.operation = Move::STOP;
-    instruction_.des_state = instruction_.local_dest = logs_.front().second.state; // TODO: REMOVE INTERP_STATE
+    instruction_.des_state = instruction_.local_dest = logs_.front().second.state;
     instruction_.des_velocity = {0.0, 0.0};
   } else if (t <= logs_.back().first) {
     int idx = -1;
@@ -119,8 +116,6 @@ const Instruction &StateManager::operator()(double t) {
     instruction_.des_state = instruction_.local_dest = logs_.back().second.state;
     instruction_.des_velocity = {0.0, 0.0};
   }
-//  instruction_.des_state = align(instruction_.des_state);
-//  instruction_.local_dest = align(instruction_.local_dest);
   instruction_.global_dest = logs_.back().second.state;
   return instruction_;
 }
@@ -187,8 +182,8 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
         hessian.insert(2 + j + shifting, 2 + i + shifting) = coeff[i][j] * dt_pow[i + j + 1];
     }
     constrains.insert(constrain_counter, shifting) = 1; // x0
-    constants.block<1, 2>(constrain_counter, 0) = accumulated_x.transpose();
-    constrain_counter++;
+    constants.block<1, 2>(constrain_counter++, 0) = accumulated_x.transpose();
+//    constrain_counter++;
     if (idx == 0) {
       constrains.insert(constrain_counter++, 1 + shifting) = 1;
       constrains.insert(constrain_counter++, 2 + shifting) = 2;
@@ -197,7 +192,8 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
     accumulated_x += curr->second.x;
     constants.block<1, 2>(constrain_counter++, 0) = accumulated_x.transpose();
     if (idx < k - 1) {
-      for (int i = 1; i < 6; i++) constrains.insert(constrain_counter, i + shifting) = i * dt_pow[i - 1]; // v continuity
+      for (int i = 1; i < 6; i++)
+        constrains.insert(constrain_counter, i + shifting) = i * dt_pow[i - 1]; // v continuity
       constrains.insert(constrain_counter++, 7 + shifting) = -1;
       for (int i = 2; i < 6; i++)
         constrains.insert(constrain_counter, i + shifting) = i * (i - 1) * dt_pow[i - 2]; // a continuity

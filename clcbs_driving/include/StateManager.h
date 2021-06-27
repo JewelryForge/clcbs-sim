@@ -56,7 +56,7 @@ struct Transition {
       state(state), v(std::move(velocity)), move(move) {};
   friend std::ostream &operator<<(std::ostream &os, const Transition &t);;
   State state;
-  Eigen::Vector2d x, v; // TODO: CHANGE TO Eigen::Vector2d
+  Eigen::Vector2d x, v;
   Move::MoveType move = Move::STOP; // next move
 };
 
@@ -64,7 +64,6 @@ class StateManager {
  public:
   explicit StateManager(const std::vector<std::pair<double, State>> &states);
   const Instruction &operator()(double t);
-  State start_state, terminal_state;
   bool finished = false;
  protected:
   virtual void interpolateVelocity(int idx, double dt, const std::pair<double, Transition> &s_p,

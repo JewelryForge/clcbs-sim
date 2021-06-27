@@ -24,9 +24,9 @@ void PlanVisualizer::addPlan(const std::vector<std::pair<double, State>> &states
   marker.color.g = 1.0;
   marker.color.a = 1.0;
   const auto &dest_state = states.back().second;
-  marker.pose.position.x = dest_state.x; // TODO: CANCEL ALIGNMENT
+  marker.pose.position.x = dest_state.x;
   marker.pose.position.y = dest_state.y;
-  marker.pose.position.x += std::cos(dest_state.yaw) * 0.5; // TODO: CANCEL ALIGNMENT
+  marker.pose.position.x += std::cos(dest_state.yaw) * 0.5;
   marker.pose.position.y += std::sin(dest_state.yaw) * 0.5;
   marker.pose.orientation.w = std::cos(dest_state.yaw / 2);
   marker.pose.orientation.z = std::sin(dest_state.yaw / 2);
