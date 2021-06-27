@@ -66,24 +66,22 @@ StateManager::StateManager(const std::vector<std::pair<double, State>> &states)
     auto diff_state = next->second - curr->second;
     if (diff_state.norm() == 0.0) {
       t.move = Move::STOP;
-      t.x = t.v = {0.0, 0.0};
+      t.x.setZero();
     } else if (diff_state.asVector2().dot(curr->second.oritUnit2()) > 0) {
       t.move = Move::FORWARD;
-      t.x(0) = t.x(1) = diff_state.diff();
+      t.x.setConstant(diff_state.diff());
     } else {
       t.move = Move::BACK;
-      t.x(0) = t.x(1) = diff_state.diff() * -1;
+      t.x.setConstant(diff_state.diff() * -1);
     }
     if (diff_state.yaw != 0) {
       double diff_x = diff_state.yaw * (Constants::CAR_WIDTH / 2);
       if (diff_state.yaw > 0) {
         t.move |= Move::LEFT_TURN;
-        t.x(0) -= diff_x;
-        t.x(1) += diff_x;
+        t.x += Eigen::Vector2d(-diff_x, diff_x);
       } else {
         t.move |= Move::RIGHT_TURN;
-        t.x(0) -= diff_x;
-        t.x(1) += diff_x;
+        t.x += Eigen::Vector2d(-diff_x, diff_x);
       }
     }
 
@@ -153,7 +151,6 @@ void Poly3StateManager::interpolateVelocity(int,
                                             double dt,
                                             const std::pair<double, Transition> &s_p,
                                             const std::pair<double, Transition> &s_n) {
-//  double vl0, vr0, vlf, vrf, xl, xr, vl, vr;
   const auto &v0 = s_p.second.v, vf = s_n.second.v, x = s_n.second.x;
   double period = s_n.first - s_p.first;
   for (int i = 0; i < 2; i++) {
@@ -194,46 +191,27 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
       for (int j = 0; j < 4; j++)
         hessian.insert(2 + j + shifting, 2 + i + shifting) = coeff[i][j] * dt_pow[i + j + 1];
     }
-//    hessian.insert(2 + 6 * idx, 2 + 6 * idx) = 4 * dt_pow[1];
-//    hessian.insert(3 + 6 * idx, 2 + 6 * idx) = 6 * dt_pow[2];
-//    hessian.insert(4 + 6 * idx, 2 + 6 * idx) = 8 * dt_pow[3];
-//    hessian.insert(5 + 6 * idx, 2 + 6 * idx) = 10 * dt_pow[4];
-//    hessian.insert(2 + 6 * idx, 3 + 6 * idx) = 6 * dt_pow[2];
-//    hessian.insert(3 + 6 * idx, 3 + 6 * idx) = 12 * dt_pow[3];
-//    hessian.insert(4 + 6 * idx, 3 + 6 * idx) = 18 * dt_pow[4];
-//    hessian.insert(5 + 6 * idx, 3 + 6 * idx) = 24 * dt_pow[5];
-//    hessian.insert(2 + 6 * idx, 4 + 6 * idx) = 8 * dt_pow[3];
-//    hessian.insert(3 + 6 * idx, 4 + 6 * idx) = 18 * dt_pow[4];
-//    hessian.insert(4 + 6 * idx, 4 + 6 * idx) = 144. / 5 * dt_pow[5];
-//    hessian.insert(5 + 6 * idx, 4 + 6 * idx) = 40 * dt_pow[6];
-//    hessian.insert(2 + 6 * idx, 5 + 6 * idx) = 10 * dt_pow[4];
-//    hessian.insert(3 + 6 * idx, 5 + 6 * idx) = 24 * dt_pow[5];
-//    hessian.insert(4 + 6 * idx, 5 + 6 * idx) = 40 * dt_pow[6];
-//    hessian.insert(5 + 6 * idx, 5 + 6 * idx) = 400. / 7 * dt_pow[7];
-    constrains.insert(constrain_counter, 6 * idx) = 1; // x0
+    constrains.insert(constrain_counter, shifting) = 1; // x0
     constants.block<1, 2>(constrain_counter, 0) = accumulated_x.transpose();
     constrain_counter++;
     if (idx == 0) {
-      constrains.insert(constrain_counter++, 1 + 6 * idx) = 1;
-      constrains.insert(constrain_counter++, 2 + 6 * idx) = 2;
+      constrains.insert(constrain_counter++, 1 + shifting) = 1;
+      constrains.insert(constrain_counter++, 2 + shifting) = 2;
     }
-    for (int i = 0; i < 6; i++) constrains.insert(constrain_counter, i + 6 * idx) = dt_pow[i]; // xt
+    for (int i = 0; i < 6; i++) constrains.insert(constrain_counter, i + shifting) = dt_pow[i]; // xt
     accumulated_x += curr->second.x;
-    constants.block<1, 2>(constrain_counter, 0) = accumulated_x.transpose();
-    constrain_counter++;
+    constants.block<1, 2>(constrain_counter++, 0) = accumulated_x.transpose();
     if (idx < k - 1) {
-      for (int i = 1; i < 6; i++) constrains.insert(constrain_counter, i + 6 * idx) = i * dt_pow[i - 1]; // v continuity
-      constrains.insert(constrain_counter, 7 + 6 * idx) = -1;
-      constrain_counter++;
+      for (int i = 1; i < 6; i++) constrains.insert(constrain_counter, i + shifting) = i * dt_pow[i - 1]; // v continuity
+      constrains.insert(constrain_counter++, 7 + shifting) = -1;
       for (int i = 2; i < 6; i++)
-        constrains.insert(constrain_counter, i + 6 * idx) = i * (i - 1) * dt_pow[i - 2]; // a continuity
-      constrains.insert(constrain_counter, 8 + 6 * idx) = -2;
-      constrain_counter++;
+        constrains.insert(constrain_counter, i + shifting) = i * (i - 1) * dt_pow[i - 2]; // a continuity
+      constrains.insert(constrain_counter++, 8 + shifting) = -2;
     } else {
-      for (int i = 1; i < 6; i++) constrains.insert(constrain_counter, i + 6 * idx) = i * dt_pow[i - 1]; // vf
+      for (int i = 1; i < 6; i++) constrains.insert(constrain_counter, i + shifting) = i * dt_pow[i - 1]; // vf
       constrain_counter++;
       for (int i = 2; i < 6; i++)
-        constrains.insert(constrain_counter, i + 6 * idx) = i * (i - 1) * dt_pow[i - 2]; // af
+        constrains.insert(constrain_counter, i + shifting) = i * (i - 1) * dt_pow[i - 2]; // af
       constrain_counter++;
     }
   }
@@ -275,10 +253,11 @@ void MinAccStateManager::interpolateVelocity(int idx, double dt,
   coeff.setZero();
   for (int i = 1; i < 5; i++) dt_pow[i] = dt_pow[i - 1] * dt;
   for (int i = 1; i < 6; i++) coeff[i] = dt_pow[i - 1] * i;
-  double vl = coeff * left_params.block<6, 1>(idx * 6, 0);
-  double xl = dt_pow * left_params.block<6, 1>(idx * 6, 0);
-  double vr = coeff * right_params.block<6, 1>(idx * 6, 0);
-  double xr = dt_pow * right_params.block<6, 1>(idx * 6, 0);
+  int shifting = idx * 6;
+  double vl = coeff * left_params.block<6, 1>(shifting, 0);
+  double xl = dt_pow * left_params.block<6, 1>(shifting, 0);
+  double vr = coeff * right_params.block<6, 1>(shifting, 0);
+  double xr = dt_pow * right_params.block<6, 1>(shifting, 0);
   instruction_.des_velocity = {vl, vr};
   instruction_.des_state.yaw = (xr - xl) / Constants::CAR_WIDTH + init_yaw;
 }
