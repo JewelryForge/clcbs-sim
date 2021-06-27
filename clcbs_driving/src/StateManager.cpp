@@ -69,26 +69,26 @@ StateManager::StateManager(const std::vector<std::pair<double, State>> &states)
       t.x = t.v = {0.0, 0.0};
     } else if (diff_state.asVector2().dot(curr->second.oritUnit2()) > 0) {
       t.move = Move::FORWARD;
-      t.x.first = t.x.second = diff_state.diff();
+      t.x(0) = t.x(1) = diff_state.diff();
     } else {
       t.move = Move::BACK;
-      t.x.first = t.x.second = diff_state.diff() * -1;
+      t.x(0) = t.x(1) = diff_state.diff() * -1;
     }
     if (diff_state.yaw != 0) {
       double diff_x = diff_state.yaw * (Constants::CAR_WIDTH / 2);
       if (diff_state.yaw > 0) {
         t.move |= Move::LEFT_TURN;
-        t.x.first -= diff_x;
-        t.x.second += diff_x;
+        t.x(0) -= diff_x;
+        t.x(1) += diff_x;
       } else {
         t.move |= Move::RIGHT_TURN;
-        t.x.first -= diff_x;
-        t.x.second += diff_x;
+        t.x(0) -= diff_x;
+        t.x(1) += diff_x;
       }
     }
 
     if (curr == states.begin()) t.v = {0.0, 0.0};
-    else t.v = {t.x.first / dt, t.x.second / dt};
+    else t.v = t.x / dt;
 
     logs_.emplace_back(curr->first, t);
   }
@@ -107,7 +107,7 @@ void StateManager::setAlignmentParam(double x, double y) {
 const Instruction &StateManager::operator()(double t) {
   if (t <= 0) {
     instruction_.operation = Move::STOP;
-    instruction_.interp_state = instruction_.goal = logs_.front().second.state; // TODO: REMOVE INTERP_STATE
+    instruction_.des_state = instruction_.local_dest = logs_.front().second.state; // TODO: REMOVE INTERP_STATE
     instruction_.des_velocity = {0.0, 0.0};
   } else if (t <= logs_.back().first) {
     int idx = -1;
@@ -115,20 +115,20 @@ const Instruction &StateManager::operator()(double t) {
       if (iter->first < t) continue;
       auto s_p = iter - 1, s_n = iter;
       double period = s_n->first - s_p->first, dt = t - s_p->first;
-      instruction_.goal = s_n->second.state;
-      instruction_.interp_state = State::interp(s_p->second.state, s_n->second.state, dt / period);
+      instruction_.local_dest = s_n->second.state;
+      instruction_.des_state = State::interp(s_p->second.state, s_n->second.state, dt / period);
       interpolateVelocity(idx, dt, *s_p, *s_n);
       break;
     }
   } else {
     finished = true;
     instruction_.operation = Move::STOP;
-    instruction_.interp_state = instruction_.goal = logs_.back().second.state;
+    instruction_.des_state = instruction_.local_dest = logs_.back().second.state;
     instruction_.des_velocity = {0.0, 0.0};
   }
-  instruction_.interp_state = align(instruction_.interp_state);
-  instruction_.goal = align(instruction_.goal);
-  instruction_.dest = align(logs_.back().second.state);
+  instruction_.des_state = align(instruction_.des_state);
+  instruction_.local_dest = align(instruction_.local_dest);
+  instruction_.global_dest = align(logs_.back().second.state);
   return instruction_;
 }
 
@@ -153,16 +153,13 @@ void Poly3StateManager::interpolateVelocity(int,
                                             double dt,
                                             const std::pair<double, Transition> &s_p,
                                             const std::pair<double, Transition> &s_n) {
-  double vl0, vr0, vlf, vrf, xl, xr, vl, vr;
-  std::tie(vl0, vr0) = s_p.second.v;
-  std::tie(vlf, vrf) = s_n.second.v;
-  std::tie(xl, xr) = s_n.second.x;
+//  double vl0, vr0, vlf, vrf, xl, xr, vl, vr;
+  const auto &v0 = s_p.second.v, vf = s_n.second.v, x = s_n.second.x;
   double period = s_n.first - s_p.first;
-  vl = vl0 + 2 / pow(period, 2) * dt * (3 * xl - 2 * vl0 * period - vlf * period) +
-      3 / pow(period, 3) * pow(dt, 2) * ((vl0 + vlf) * period - 2 * xl);
-  vr = vr0 + 2 / pow(period, 2) * dt * (3 * xr - 2 * vr0 * period - vrf * period) +
-      3 / pow(period, 3) * pow(dt, 2) * ((vr0 + vrf) * period - 2 * xr);
-  instruction_.des_velocity = {vl, vr};
+  for (int i = 0; i < 2; i++) {
+    instruction_.des_velocity(i) = v0(i) + 2 / pow(period, 2) * dt * (3 * x(i) - 2 * v0(i) * period - vf(i) * period) +
+        3 / pow(period, 3) * pow(dt, 2) * ((v0(i) + vf(i)) * period - 2 * x(i));
+  }
 }
 
 MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State>> &states) :
@@ -213,8 +210,8 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
       constrains.insert(constrain_count++, 2 + 6 * idx) = 2;
     }
     for (int i = 0; i < 6; i++) constrains.insert(constrain_count, i + 6 * idx) = dt_pow[i]; // xt
-    accumulated_x.first += curr->second.x.first;
-    accumulated_x.second += curr->second.x.second;
+    accumulated_x.first += curr->second.x(0);
+    accumulated_x.second += curr->second.x(1);
     l_values(constrain_count) = accumulated_x.first;
     r_values(constrain_count) = accumulated_x.second;
     constrain_count++;
@@ -277,5 +274,5 @@ void MinAccStateManager::interpolateVelocity(int idx, double dt,
   double vr = coeff * right_params.block<6, 1>(idx * 6, 0);
   double xr = dt_pow * right_params.block<6, 1>(idx * 6, 0);
   instruction_.des_velocity = {vl, vr};
-  instruction_.des_state = {0, 0, (xr - xl) / Constants::CAR_WIDTH + init_yaw};
+  instruction_.des_state.yaw = (xr - xl) / Constants::CAR_WIDTH + init_yaw;
 }

@@ -46,17 +46,17 @@ std::string move2str(MoveType m);
 
 struct Instruction {
   Move::MoveType operation = Move::STOP;
-  State interp_state, goal, des_state, dest; //TODO: REMOVE INTERP_STATE
-  std::pair<double, double> des_velocity;
+  State des_state, local_dest, global_dest;
+  Eigen::Vector2d des_velocity;
 };
 
 struct Transition {
   Transition() = default;
-  Transition(State state, std::pair<double, double> velocity, Move::MoveType move) :
+  Transition(State state, Eigen::Vector2d velocity, Move::MoveType move) :
       state(state), v(std::move(velocity)), move(move) {};
   friend std::ostream &operator<<(std::ostream &os, const Transition &t);;
   State state;
-  std::pair<double, double> x, v; // TODO: CHANGE TO Eigen::Vector2d
+  Eigen::Vector2d x, v; // TODO: CHANGE TO Eigen::Vector2d
   Move::MoveType move = Move::STOP; // next move
 };
 
@@ -89,7 +89,6 @@ class MinAccStateManager : public StateManager {
   Angle init_yaw;
   Eigen::VectorXd left_params, right_params;
 };
-
 
 template<typename T>
 std::ostream &operator<<(std::ostream &os, const std::vector<T> &v) {
