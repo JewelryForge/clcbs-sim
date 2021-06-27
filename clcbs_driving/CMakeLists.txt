@@ -29,7 +29,7 @@ include_directories(
         ${YAML_CPP_INCLUDE_DIR}
 )
 
-add_library(lib src/CarModel.cpp src/FeedbackController.cpp src/StateManager.cpp src/Angle.cpp src/PlanVisualizer.cpp)
+add_library(lib src/CarModel.cpp src/LocalPlanner.cpp src/StateManager.cpp src/Angle.cpp src/PlanVisualizer.cpp)
 
 add_executable(clcbs_driving src/main.cpp)
 

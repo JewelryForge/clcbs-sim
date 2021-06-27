@@ -1,5 +1,5 @@
 #include "CarModel.h"
-#include "FeedbackController.h"
+#include "LocalPlanner.h"
 #include <iostream>
 #include "PID.hpp"
 #include "Angle.h"
@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
   // schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
   config = YAML::LoadFile(schedule_file);
   auto schedule = config["schedule"];
-  std::vector<std::unique_ptr<FeedbackController>> controllers;
+  std::vector<std::unique_ptr<LocalPlanner>> controllers;
   PlanVisualizer visualizer(nh);
   int i = 0;
   for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
@@ -40,16 +40,16 @@ int main(int argc, char **argv) {
       t_states.emplace_back(t, State(x - Constants::MAP_SIZE_X / 2, y - Constants::MAP_SIZE_Y / 2, -yaw));
     }
     visualizer.addPlan(t_states);
-    controllers.push_back(std::make_unique<FeedbackController>(nh, key, t_states));
-    if (++i == 3) break;
+    controllers.push_back(std::make_unique<LocalPlanner>(nh, key, t_states));
+    if (++i == 5) break;
   }
 
   ROS_INFO("SETTING UP FINISHED");
 
   ros::Duration(0.5).sleep();
   visualizer.publishOnce();
-  ros::Duration(2).sleep();
-  while(!FeedbackController::activateAll());
+  ros::Duration(0.5).sleep();
+  while(!LocalPlanner::activateAll());
   auto rate = ros::Rate(50);
   while (ros::ok()) {
     ros::spinOnce();

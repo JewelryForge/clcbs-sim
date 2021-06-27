@@ -75,11 +75,10 @@ StateManager::StateManager(const std::vector<std::pair<double, State>> &states) 
       double diff_x = diff_state.yaw * (Constants::CAR_WIDTH / 2);
       if (diff_state.yaw > 0) {
         t.move |= Move::LEFT_TURN;
-        t.x += Eigen::Vector2d(-diff_x, diff_x);
       } else {
         t.move |= Move::RIGHT_TURN;
-        t.x += Eigen::Vector2d(-diff_x, diff_x);
       }
+      t.x += Eigen::Vector2d(-diff_x, diff_x);
     }
 
     if (curr == states.begin()) t.v = {0.0, 0.0};
