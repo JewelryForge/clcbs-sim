@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
   PlanVisualizer visualizer(nh);
   for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
     std::string key = iter->first.as<std::string>();
-//    key = "agent4";
+//    key = "agent2";
     std::vector<std::pair<double, State>> t_states;
     for (auto s : schedule[key]/* iter->second */) {
       auto t = s["t"].as<double>(), x = s["x"].as<double>(), y = s["y"].as<double>(), yaw = -s["yaw"].as<double>();
@@ -47,15 +47,16 @@ int main(int argc, char **argv) {
   }
   ROS_INFO("SETTING UP FINISHED");
 
-  auto rate = ros::Rate(50);
   ros::Duration(0.5).sleep();
   visualizer.publishOnce();
-  ros::Duration(0.5).sleep();
+//  ros::Duration(0.5).sleep();
+  while(!FeedbackController::activateAll());
+  auto rate = ros::Rate(50);
   while (ros::ok()) {
     ros::spinOnce();
-    if (!FeedbackController::allActive()) continue;
+//    if (!FeedbackController::allActive()) continue;
     for (auto &ptr : controllers) {
-      ptr->spinOnce(); // TODO: USE A CLOCK INSTEAD OF SERIAL CONTROL
+      ptr->calculateVelocityAndPublish(); // TODO: USE A CLOCK INSTEAD OF SERIAL CONTROL
     }
     rate.sleep();
 }

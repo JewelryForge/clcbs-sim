@@ -9,7 +9,7 @@
 
 #include "FeedbackController.h"
 
-std::vector<const FeedbackController *> FeedbackController::all_controller;
+std::vector<FeedbackController *> FeedbackController::all_controller_;
 
 FeedbackController::FeedbackController(ros::NodeHandle &nh, std::string name,
                                        const std::vector<std::pair<double, State>> &states)
@@ -17,30 +17,32 @@ FeedbackController::FeedbackController(ros::NodeHandle &nh, std::string name,
   left_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/left_wheel_controller/command", 1);
   right_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/right_wheel_controller/command", 1);
   state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/" + name_ + "/robot_base", 1,
-                                                  [this](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
+                                                  [=](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
   state_manager_ = std::make_unique<MinAccStateManager>(states);
   state_manager_->setAlignmentParam(-Constants::MAP_SIZE_X / 2, -Constants::MAP_SIZE_Y / 2);
-  all_controller.push_back(this);
+  all_controller_.push_back(this);
 }
-void FeedbackController::start() {
-  is_started_ = true;
-  t_start_ = ros::Time::now();
-}
+
 void FeedbackController::stateUpdate(const geometry_msgs::Pose::ConstPtr &p) {
   const auto &q = p->orientation;
   Angle yaw(std::atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z)));
   curr_state_ = std::make_unique<State>(p->position.x, p->position.y, yaw);
 }
 
-bool FeedbackController::isActive() const {
-  return curr_state_ != nullptr;
+bool FeedbackController::activateAll() {
+  for (auto &c: all_controller_) {
+    if (c->isActive()) return false;
+  }
+  auto t_start = ros::Time::now() + ros::Duration(0.5);
+  for (auto &c: all_controller_) {
+    c->is_started_ = true;
+    c->t_start_ = t_start;
+  }
+  return true;
 }
 
-void FeedbackController::spinOnce() {
-  if (isActive()) {
-    if (!is_started_) start();
-    calculateVelocityAndPublish();
-  }
+bool FeedbackController::isActive() {
+ return curr_state_ != nullptr;
 }
 
 void FeedbackController::publishOnce(const std::pair<double, double> &v) {
@@ -52,10 +54,16 @@ void FeedbackController::publishOnce(const std::pair<double, double> &v) {
 }
 
 void FeedbackController::calculateVelocityAndPublish() {
-  double dt = (ros::Time::now() - t_start_).toSec();
+  if (isActive()) calculateVelocityAndPublishBase((ros::Time::now() - t_start_).toSec());
+}
+
+void FeedbackController::calculateVelocityAndPublish(const ros::TimerEvent &e) {
+  if (!isActive()) calculateVelocityAndPublishBase((e.current_real - t_start_).toSec());
+}
+
+void FeedbackController::calculateVelocityAndPublishBase(double dt) {
   const Instruction &des = (*state_manager_)(dt);
   const State &interp_state = des.interp_state;
-//  std::tie(vx, vw) = state_manager_.getInstruction(dt);
   tf::Transform transform;
   transform.setOrigin(tf::Vector3(interp_state.x, interp_state.y, 0));
   tf::Quaternion q;
@@ -94,22 +102,9 @@ void FeedbackController::calculateVelocityAndPublish() {
     double delta_yaw = des.des_state.yaw - curr_state_->yaw;
     model_.setVx(vx + 1.0 * sign(vx) * diff_state.asVector2().dot(curr_state_->oritUnit2()));
     model_.setVw(vw + 6.0 * delta_yaw + 1.0 * heading_deviation * diff_state.norm());
-    ROS_INFO_STREAM(name_ << '\t' << model_.getVelocity());
+    ROS_INFO_STREAM(name_ << " TRACING " << model_.getVelocity());
   }
   publishOnce(model_.getVelocity());
-}
-
-bool FeedbackController::allActive() {
-  for (auto c: all_controller) {
-    if (!c->isActive()) return false;
-  }
-  return true;
-}
-void FeedbackController::calculateVelocityAndPublish(const ros::TimerEvent) {
-
-}
-void FeedbackController::calculateVelocityAndPublishBase(double dt) {
-
 }
 
 
