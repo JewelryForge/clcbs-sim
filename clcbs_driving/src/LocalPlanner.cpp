@@ -15,6 +15,8 @@ LocalPlanner::LocalPlanner(ros::NodeHandle &nh, std::string name,
   right_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/right_wheel_controller/command", 1);
   state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/" + name_ + "/robot_base", 1,
                                                   [=](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
+  joint_sub_ = nh_.subscribe<sensor_msgs::JointState>("/" + name_ + "/joint_states", 1,
+                                                      [=](auto &&PH1) { jointStateUpdate(std::forward<decltype(PH1)>(PH1)); });
   state_manager_ = std::make_unique<MinAccStateManager>(states);
   all_controller_.push_back(this);
 }
@@ -23,6 +25,17 @@ void LocalPlanner::stateUpdate(const geometry_msgs::Pose::ConstPtr &p) {
   const auto &q = p->orientation;
   Angle yaw(std::atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z)));
   curr_state_ = std::make_unique<State>(p->position.x, p->position.y, yaw);
+  ROS_INFO_STREAM("STATE_UPDATE");
+}
+
+void LocalPlanner::jointStateUpdate(const sensor_msgs::JointState::ConstPtr &p) {
+  for (int i = 0; i < 2; i++) {
+    if (p->name[i] == "agent_leftwheel_joint") {
+      // TODO: ONLY UPDATE; AND USE A CLOCK FOR INTEGRAL
+    } else {
+
+    }
+  }
 }
 
 bool LocalPlanner::activateAll() {
@@ -36,7 +49,7 @@ bool LocalPlanner::activateAll() {
   return true;
 }
 
-bool LocalPlanner::isActive() {
+bool LocalPlanner::isActive() const {
   return curr_state_ != nullptr;
 }
 
@@ -50,10 +63,6 @@ void LocalPlanner::publishOnce(const std::pair<double, double> &v) {
 
 void LocalPlanner::calculateVelocityAndPublish() {
   if (isActive()) calculateVelocityAndPublishBase((ros::Time::now() - t_start_).toSec());
-}
-
-void LocalPlanner::calculateVelocityAndPublish(const ros::TimerEvent &e) {
-  if (!isActive()) calculateVelocityAndPublishBase((e.current_real - t_start_).toSec());
 }
 
 void LocalPlanner::calculateVelocityAndPublishBase(double dt) {
@@ -103,9 +112,6 @@ void LocalPlanner::calculateVelocityAndPublishBase(double dt) {
     ROS_INFO_STREAM(name_ << " TRACING " << model_.getVelocity());
   }
   publishOnce(model_.getVelocity());
-}
-void LocalPlanner::registerAll(double rate) {
-//  ros::Timer timer
 }
 
 
