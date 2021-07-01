@@ -25,11 +25,11 @@ int main(int argc, char **argv) {
   YAML::Node config;
   ros::init(argc, argv, "CPP_TEST");
   ros::NodeHandle nh;
-  // schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
+   schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
   config = YAML::LoadFile(schedule_file);
   auto schedule = config["schedule"];
   std::vector<std::unique_ptr<LocalPlanner>> controllers;
-  PlanVisualizer visualizer(nh);
+  PlanVisualizer visualizer;
   int i = 0;
   for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
     std::string key = iter->first.as<std::string>();
@@ -40,8 +40,8 @@ int main(int argc, char **argv) {
       t_states.emplace_back(t, State(x - Constants::MAP_SIZE_X / 2, y - Constants::MAP_SIZE_Y / 2, -yaw));
     }
     visualizer.addPlan(t_states);
-    controllers.push_back(std::make_unique<LocalPlanner>(nh, key, t_states));
-    if (++i == 5) break;
+    controllers.push_back(std::make_unique<LocalPlanner>(key, t_states));
+    if (++i == 3) break;
   }
 
   ROS_INFO("SETTING UP FINISHED");

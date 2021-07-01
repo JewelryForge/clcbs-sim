@@ -9,7 +9,7 @@
 
 class PlanVisualizer {
  public:
-  explicit PlanVisualizer(ros::NodeHandle &nh);
+  PlanVisualizer();
   void addPlan(const std::vector<std::pair<double, State>> &states);
   void publishOnce();
  private:

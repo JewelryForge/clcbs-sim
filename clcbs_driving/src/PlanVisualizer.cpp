@@ -5,7 +5,7 @@
 #include <geometry_msgs/Point.h>
 #include "Constants.h"
 
-PlanVisualizer::PlanVisualizer(ros::NodeHandle &nh) : nh_(nh) {
+PlanVisualizer::PlanVisualizer() {
   path_publisher_ = nh_.advertise<visualization_msgs::Marker>("/path_visualizer", 10);
 }
 
