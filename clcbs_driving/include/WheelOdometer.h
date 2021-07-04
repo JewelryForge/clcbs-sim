@@ -11,11 +11,12 @@
 #include <Eigen/Core>
 #include "StateManager.h"
 #include "tf2_ros/transform_broadcaster.h"
+#include "hunter_msgs/HunterStatus.h"
 
 class WheelOdometer {
  public:
   explicit WheelOdometer(const std::string &agent_name, State init_state = State());
-  void jointStateUpdate(const sensor_msgs::JointState::ConstPtr &p);
+  void stateUpdate(const hunter_msgs::HunterStatus::ConstPtr &p);
   void integral(const ros::TimerEvent &e);
 
  private:
@@ -24,7 +25,7 @@ class WheelOdometer {
   ros::Subscriber sub_;
   ros::Publisher pub_;
   ros::Timer timer_;
-  Eigen::Vector2d vel_;
+  double linear_velocity_ = 0.0, angular_velocity_ = 0.0;
   State state_;
   tf2_ros::TransformBroadcaster br_;
 };

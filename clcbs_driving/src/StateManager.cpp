@@ -52,11 +52,7 @@ Eigen::Vector3d State::oritUnit3() const {
 StateManager::StateManager(const std::vector<std::pair<double, State>> &states) {
   assert(states.size() >= 2 and states.front().first == 0);
   logs_.reserve(states.size());
-  for (auto curr = states.begin(), next = curr + 1;; curr = next, ++next) {
-    if (next == states.end()) {
-      logs_.emplace_back(curr->first, Transition(curr->second, {0.0, 0.0}, Move::STOP));
-      break;
-    }
+  for (auto curr = states.begin(), next = curr + 1; next != states.end(); curr = next, ++next) {
     Transition t;
     t.state = curr->second;
     double dt = next->first - curr->first;
@@ -66,25 +62,25 @@ StateManager::StateManager(const std::vector<std::pair<double, State>> &states) 
       t.x.setZero();
     } else if (diff_state.asVector2().dot(curr->second.oritUnit2()) > 0) {
       t.move = Move::FORWARD;
-      t.x.setConstant(diff_state.diff());
+      t.x(0) = diff_state.diff();
     } else {
       t.move = Move::BACK;
-      t.x.setConstant(diff_state.diff() * -1);
+      t.x(0) = -diff_state.diff();
     }
     if (diff_state.yaw != 0) {
-      double diff_x = diff_state.yaw * (Constants::CAR_WIDTH / 2);
       if (diff_state.yaw > 0) {
         t.move |= Move::LEFT_TURN;
       } else {
         t.move |= Move::RIGHT_TURN;
       }
-      t.x += Eigen::Vector2d(-diff_x, diff_x);
+      t.x(1) = diff_state.yaw;
     }
 
     if (curr == states.begin()) t.v = {0.0, 0.0};
     else t.v = t.x / dt;
     logs_.emplace_back(curr->first, t);
   }
+  logs_.emplace_back(states.back().first, Transition(states.back().second));
 //  std::cout << logs << std::endl;
 }
 void StateManager::interpolateVelocity(int idx, double dt,

@@ -17,9 +17,10 @@ find_package(
         sensor_msgs
         gazebo_msgs
         tf
+        hunter_msgs
 )
 catkin_package(
-        CATKIN_DEPENDS roscpp rospy std_msgs message_runtime sensor_msgs gazebo_msgs tf
+        CATKIN_DEPENDS roscpp rospy std_msgs message_runtime sensor_msgs gazebo_msgs tf hunter_msgs
 )
 
 include_directories(
@@ -29,7 +30,7 @@ include_directories(
         ${YAML_CPP_INCLUDE_DIR}
 )
 
-add_library(lib src/CarModel.cpp src/LocalPlanner.cpp src/StateManager.cpp src/Angle.cpp src/PlanVisualizer.cpp src/WheelOdometer.cpp include/WheelOdometer.h)
+add_library(lib src/CarModel.cpp src/LocalPlanner.cpp src/StateManager.cpp src/Angle.cpp src/PlanVisualizer.cpp src/WheelOdometer.cpp)
 
 add_executable(clcbs_driving src/main.cpp)
 

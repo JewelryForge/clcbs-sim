@@ -52,11 +52,11 @@ struct Instruction {
 
 struct Transition {
   Transition() = default;
-  Transition(State state, Eigen::Vector2d velocity, Move::MoveType move) :
+  explicit Transition(State state, Eigen::Vector2d velocity = Eigen::Vector2d::Zero(), Move::MoveType move = Move::STOP) :
       state(state), v(std::move(velocity)), move(move) {};
   friend std::ostream &operator<<(std::ostream &os, const Transition &t);;
   State state;
-  Eigen::Vector2d x, v;
+  Eigen::Vector2d x, v; // x_linear, x_angular, v_linear, v_angular
   Move::MoveType move = Move::STOP; // next move
 };
 

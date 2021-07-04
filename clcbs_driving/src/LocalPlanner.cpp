@@ -88,9 +88,9 @@ void LocalPlanner::calculateVelocityAndPublishBase(double dt) {
       heading_deviation = Angle(heading_deviation + M_PI);
     }
     double vx = (vl + vr) / 2, vw = (vr - vl) / Constants::CAR_WIDTH;
-    double delta_yaw = des.des_state.yaw - curr_state_->yaw;
+//    double delta_yaw = des.des_state.yaw - curr_state_->yaw;
     model_.setVx(vx + 1.0 * sign(vx) * interp_diff.asVector2().dot(curr_state_->oritUnit2()));
-    model_.setVw(vw + 6.0 * delta_yaw + 1.0 * heading_deviation * interp_diff.norm());
+    model_.setVw(vw + 6.0 * static_cast<double>(interp_diff.yaw) + 1.0 * heading_deviation * interp_diff.norm());
     ROS_INFO_STREAM(name_ << " TRACING " << model_.getVelocity());
   }
   publishOnce(model_.getVelocity());
