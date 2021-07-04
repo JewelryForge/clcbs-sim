@@ -31,7 +31,6 @@ class LocalPlanner {
   ros::Subscriber state_sub_;
   tf::TransformBroadcaster tf_broadcaster_; // TODO: CHANGE TO tf2
 
-//  PlanVisualizer visualizer_;
   WheelOdometer odom_;
   std::unique_ptr<State> curr_state_;
   std::string name_;

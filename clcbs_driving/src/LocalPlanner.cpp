@@ -14,7 +14,7 @@ LocalPlanner::LocalPlanner(std::string name, const std::vector<std::pair<double,
   right_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/right_wheel_controller/command", 1);
   state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/" + name_ + "/robot_base", 1,
                                                   [=](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
-  state_manager_ = std::make_unique<MinAccStateManager>(states);
+  state_manager_ = std::make_unique<RealStateManager>(states);
   all_controller_.push_back(this);
 }
 
@@ -82,12 +82,12 @@ void LocalPlanner::calculateVelocityAndPublishBase(double dt) {
       ROS_INFO_STREAM(name_ << " TUNING ");
     }
   } else {
-    double vl = des.des_velocity(0), vr = des.des_velocity(1);
+//    double vl = des.des_velocity(0), vr = des.des_velocity(1);
     double heading_deviation = Angle(std::atan2(interp_diff.y, interp_diff.x)) - curr_state_->yaw;
     if (std::abs(heading_deviation) > M_PI_2) {
       heading_deviation = Angle(heading_deviation + M_PI);
     }
-    double vx = (vl + vr) / 2, vw = (vr - vl) / Constants::CAR_WIDTH;
+    double vx = des.des_velocity(0), vw = des.des_velocity(1);
 //    double delta_yaw = des.des_state.yaw - curr_state_->yaw;
     model_.setVx(vx + 1.0 * sign(vx) * interp_diff.asVector2().dot(curr_state_->oritUnit2()));
     model_.setVw(vw + 6.0 * static_cast<double>(interp_diff.yaw) + 1.0 * heading_deviation * interp_diff.norm());

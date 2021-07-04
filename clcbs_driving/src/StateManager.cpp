@@ -67,15 +67,13 @@ StateManager::StateManager(const std::vector<std::pair<double, State>> &states) 
       t.move = Move::BACK;
       t.x(0) = -diff_state.diff();
     }
-    if (diff_state.yaw != 0) {
-      if (diff_state.yaw > 0) {
-        t.move |= Move::LEFT_TURN;
-      } else {
-        t.move |= Move::RIGHT_TURN;
-      }
-      t.x(1) = diff_state.yaw;
+    if (diff_state.yaw > 0) {
+      t.move |= Move::LEFT_TURN;
+    } else if (diff_state.yaw < 0) {
+      t.move |= Move::RIGHT_TURN;
     }
 
+    t.x(1) = diff_state.yaw;
     if (curr == states.begin()) t.v = {0.0, 0.0};
     else t.v = t.x / dt;
     logs_.emplace_back(curr->first, t);
@@ -144,8 +142,8 @@ void Poly3StateManager::interpolateVelocity(int,
   }
 }
 
-MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State>> &states) :
-    StateManager(states), init_yaw(states.front().second.yaw) {
+RealStateManager::RealStateManager(const std::vector<std::pair<double, State>> &states) :
+    StateManager(states), init_yaw_(states.front().second.yaw) {
   Eigen::SparseMatrix<double> hessian, constrains;
   Eigen::Matrix<double, -1, 2> constants;
   Eigen::VectorXd gradient;
@@ -166,7 +164,7 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
       {10, 24, 40, 400. / 7}
   };
   int idx = 0, constrain_counter = 0;
-  Eigen::Vector2d accumulated_x = Eigen::Vector2d::Zero();
+  Eigen::Vector2d accumulated_x = {0, init_yaw_};
   for (auto curr = logs_.begin(), next = curr + 1; next != logs_.end(); curr = next, ++next, ++idx) {
     double dt = next->first - curr->first;
     double dt_pow[8]{1};
@@ -202,11 +200,10 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
     }
   }
 
-//  std::cout << hessian << std::endl;
-//  std::cout << constrains << std::endl;
-//  std::cout << l_values.transpose() << std::endl;
-//  std::cout << r_values.transpose() << std::endl;
-//  std::cout << k << std::endl;
+  std::cout << hessian << std::endl;
+  std::cout << constrains << std::endl;
+  std::cout << constants.transpose() << std::endl;
+  std::cout << k << std::endl;
 
   OsqpEigen::Solver solver;
   solver.settings()->setWarmStart(true);
@@ -220,30 +217,29 @@ MinAccStateManager::MinAccStateManager(const std::vector<std::pair<double, State
   assert(solver.data()->setUpperBound(constants.col(0)));
   assert(solver.initSolver());
   assert(solver.solve());
-  left_params = solver.getSolution();
-//  std::cout << "SOLUTION: \n" << left_params.transpose() << std::endl;
+  linear_params_ = solver.getSolution();
+//  std::cout << "SOLUTION: \n" << linear_params_.transpose() << std::endl;
   solver.clearSolver();
   assert(solver.data()->setLowerBound(constants.col(1)));
   assert(solver.data()->setUpperBound(constants.col(1)));
   assert(solver.initSolver());
   assert(solver.solve());
-  right_params = solver.getSolution();
-//  std::cout << "SOLUTION: \n" << right_params.transpose() << std::endl;
+  angular_params_ = solver.getSolution();
+//  std::cout << "SOLUTION: \n" << angular_params_.transpose() << std::endl;
 }
 
-void MinAccStateManager::interpolateVelocity(int idx, double dt,
-                                             const std::pair<double, Transition> &s_p,
-                                             const std::pair<double, Transition> &s_n) {
+void RealStateManager::interpolateVelocity(int idx, double dt,
+                                           const std::pair<double, Transition> &s_p,
+                                           const std::pair<double, Transition> &s_n) {
   Eigen::Matrix<double, 1, 6> dt_pow, coeff;
   dt_pow.setOnes();
   coeff.setZero();
   for (int i = 1; i < 5; i++) dt_pow[i] = dt_pow[i - 1] * dt;
   for (int i = 1; i < 6; i++) coeff[i] = dt_pow[i - 1] * i;
   int shifting = idx * 6;
-  double vl = coeff * left_params.block<6, 1>(shifting, 0);
-  double xl = dt_pow * left_params.block<6, 1>(shifting, 0);
-  double vr = coeff * right_params.block<6, 1>(shifting, 0);
-  double xr = dt_pow * right_params.block<6, 1>(shifting, 0);
-  instruction_.des_velocity = {vl, vr};
-  instruction_.des_state.yaw = (xr - xl) / Constants::CAR_WIDTH + init_yaw;
+  double linear_velocity = coeff * linear_params_.block<6, 1>(shifting, 0);
+  double angular_velocity = coeff * angular_params_.block<6, 1>(shifting, 0);
+  double des_yaw = dt_pow * angular_params_.block<6, 1>(shifting, 0);
+  instruction_.des_velocity = {linear_velocity, angular_velocity};
+  instruction_.des_state.yaw = Angle(des_yaw);
 }

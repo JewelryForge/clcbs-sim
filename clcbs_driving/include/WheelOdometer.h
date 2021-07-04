@@ -28,6 +28,7 @@ class WheelOdometer {
   double linear_velocity_ = 0.0, angular_velocity_ = 0.0;
   State state_;
   tf2_ros::TransformBroadcaster br_;
+  bool is_started_ = false;
 };
 
 #endif //CLCBS_DRIVING_INCLUDE_WHEELODOMETER_H_

@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   YAML::Node config;
   ros::init(argc, argv, "CPP_TEST");
   ros::NodeHandle nh;
-   schedule_file = "/home/jewelry/docker_ws/ros-melodic-ws/CLCBS/src/clcbs_driving/output.yaml";
+//   schedule_file = "/home/jewelry/catkin_ws/CLCBS_real/src/clcbs_driving/output.yaml";
   config = YAML::LoadFile(schedule_file);
   auto schedule = config["schedule"];
   std::vector<std::unique_ptr<LocalPlanner>> controllers;
@@ -35,7 +35,7 @@ int main(int argc, char **argv) {
     std::string key = iter->first.as<std::string>();
     // key = "agent2";
     std::vector<std::pair<double, State>> t_states;
-    for (auto s : schedule[key]/* iter->second */) {
+    for (auto s : iter->second) {
       auto t = s["t"].as<double>(), x = s["x"].as<double>(), y = s["y"].as<double>(), yaw = s["yaw"].as<double>();
       t_states.emplace_back(t, State(x - Constants::MAP_SIZE_X / 2, y - Constants::MAP_SIZE_Y / 2, -yaw));
     }

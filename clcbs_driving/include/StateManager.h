@@ -77,14 +77,14 @@ class Poly3StateManager : public StateManager {
                            const std::pair<double, Transition> &s_n) override;
 };
 
-class MinAccStateManager : public StateManager {
+class RealStateManager : public StateManager {
  public:
-  explicit MinAccStateManager(const std::vector<std::pair<double, State>> &states);
+  explicit RealStateManager(const std::vector<std::pair<double, State>> &states);
  private:
   void interpolateVelocity(int idx, double dt, const std::pair<double, Transition> &s_p,
                            const std::pair<double, Transition> &s_n) override;
-  Angle init_yaw;
-  Eigen::VectorXd left_params, right_params;
+  Angle init_yaw_;
+  Eigen::VectorXd linear_params_, angular_params_;
 };
 
 template<typename T>
