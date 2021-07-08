@@ -18,7 +18,7 @@ class WheelOdometer {
   explicit WheelOdometer(const std::string &agent_name, State init_state = State());
   void stateUpdate(const hunter_msgs::HunterStatus::ConstPtr &p);
   void integral(const ros::TimerEvent &e);
-
+  const State& getState() { return state_; }
  private:
   std::string name_;
   ros::NodeHandle nh_;

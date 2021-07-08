@@ -42,7 +42,7 @@ double CarModel::vw() const {
   return ort_ * vx() / rot_radius_;
 }
 
-std::pair<double, double> CarModel::getVelocity() const {
+const std::pair<double, double> CarModel::getVelocity() const {
   return {vx() - vw() * width_ / 2, vx() + vw() * width_ / 2};
 }
 

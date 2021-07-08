@@ -15,10 +15,10 @@ class CarModel {
   void reset();
   double vx() const;
   double vw() const;
-  std::pair<double, double> getVelocity() const;
+  const std::pair<double, double> getVelocity() const;
  private:
   double thr_, ort_;
-  double vx_max_, /* step_, */ rot_radius_, width_;
+  double vx_max_, rot_radius_, width_;
 };
 
 

@@ -9,7 +9,6 @@
 
 WheelOdometer::WheelOdometer(const std::string &agent_name, State init_state) :
     name_(agent_name), state_(init_state) {
-
   sub_ = nh_.subscribe<hunter_msgs::HunterStatus>("/hunter_status", 1,
                                                   [=](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
   pub_ = nh_.advertise<geometry_msgs::Pose>("/" + agent_name + "/wheel_odometry", 1);

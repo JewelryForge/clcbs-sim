@@ -52,8 +52,9 @@ struct Instruction {
 
 struct Transition {
   Transition() = default;
-  explicit Transition(State state, Eigen::Vector2d velocity = Eigen::Vector2d::Zero(), Move::MoveType move = Move::STOP) :
-      state(state), v(std::move(velocity)), move(move) {};
+  explicit Transition(State state, Eigen::Vector2d displacement = Eigen::Vector2d::Zero(),
+                      Eigen::Vector2d velocity = Eigen::Vector2d::Zero(), Move::MoveType move = Move::STOP) :
+      state(state), x(std::move(displacement)), v(std::move(velocity)), move(move) {};
   friend std::ostream &operator<<(std::ostream &os, const Transition &t);;
   State state;
   Eigen::Vector2d x, v; // x_linear, x_angular, v_linear, v_angular
@@ -77,9 +78,9 @@ class Poly3StateManager : public StateManager {
                            const std::pair<double, Transition> &s_n) override;
 };
 
-class RealStateManager : public StateManager {
+class MiniAccStateManager : public StateManager {
  public:
-  explicit RealStateManager(const std::vector<std::pair<double, State>> &states);
+  explicit MiniAccStateManager(const std::vector<std::pair<double, State>> &states);
  private:
   void interpolateVelocity(int idx, double dt, const std::pair<double, Transition> &s_p,
                            const std::pair<double, Transition> &s_n) override;

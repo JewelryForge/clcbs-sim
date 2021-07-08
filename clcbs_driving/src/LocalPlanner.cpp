@@ -1,30 +1,24 @@
 #include <functional>
 #include <std_msgs/Float64.h>
 #include <geometry_msgs/Pose.h>
+#include <geometry_msgs/Twist.h>
 #include <Eigen/Core>
 #include <utility>
-
 #include "LocalPlanner.h"
 
-std::vector<LocalPlanner *> LocalPlanner::all_controller_;
+std::vector<LocalPlannerBase *> LocalPlannerBase::all_controller_;
 
-LocalPlanner::LocalPlanner(std::string name, const std::vector<std::pair<double, State>> &states)
-    : name_(std::move(name)), model_(), odom_(name, states.front().second) {
-  left_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/left_wheel_controller/command", 1);
-  right_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/right_wheel_controller/command", 1);
-  state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/" + name_ + "/robot_base", 1,
-                                                  [=](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
-  state_manager_ = std::make_unique<RealStateManager>(states);
+LocalPlannerBase::LocalPlannerBase(std::string name, const std::vector<std::pair<double, State>> &states)
+    : name_(std::move(name)) {
+  state_manager_ = std::make_unique<MiniAccStateManager>(states);
   all_controller_.push_back(this);
 }
 
-void LocalPlanner::stateUpdate(const geometry_msgs::Pose::ConstPtr &p) {
-  const auto &q = p->orientation;
-  Angle yaw(std::atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z)));
-  curr_state_ = std::make_unique<State>(p->position.x, p->position.y, yaw);
+bool LocalPlannerBase::isActive() const {
+  return curr_state_ != nullptr;
 }
 
-bool LocalPlanner::activateAll() {
+bool LocalPlannerBase::activateAll() {
   for (auto &c: all_controller_) {
     if (c->isActive()) return false;
   }
@@ -35,34 +29,25 @@ bool LocalPlanner::activateAll() {
   return true;
 }
 
-bool LocalPlanner::isActive() const {
-  return curr_state_ != nullptr;
-}
-
-void LocalPlanner::publishOnce(const std::pair<double, double> &v) {
-  std_msgs::Float64 left_wheel_velocity, right_wheel_velocity;
-  left_wheel_velocity.data = v.first / Constants::WHEEL_RADIUS;
-  right_wheel_velocity.data = v.second / Constants::WHEEL_RADIUS;
-  left_pub_.publish(left_wheel_velocity);
-  right_pub_.publish(right_wheel_velocity);
-}
-
-void LocalPlanner::calculateVelocityAndPublish() {
+void LocalPlannerBase::calculateVelocityAndPublish() {
   if (isActive()) calculateVelocityAndPublishBase((ros::Time::now() - t_start_).toSec());
 }
 
-void LocalPlanner::calculateVelocityAndPublishBase(double dt) {
+void LocalPlannerBase::tfPublishOnce(const State &s) {
+//  tf::Transform transform;
+//  transform.setOrigin(tf::Vector3(interp_state.x, interp_state.y, 0));
+//  tf::Quaternion q;
+//  q.setRPY(0, 0, interp_state.yaw);
+//  transform.setRotation(q);
+//  tf_broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", name_ + "/desired_state"));
+}
+
+void LocalPlannerBase::calculateVelocityAndPublishBase(double dt) {
   const Instruction &des = (*state_manager_)(dt);
   const State &interp_state = des.des_state;
-  tf::Transform transform;
-  transform.setOrigin(tf::Vector3(interp_state.x, interp_state.y, 0));
-  tf::Quaternion q;
-  q.setRPY(0, 0, interp_state.yaw);
-  transform.setRotation(q);
-  tf_broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", name_ + "/desired_state"));
-
+  tfPublishOnce(interp_state);
   if (is_finished_) {
-    publishOnce({0, 0});
+    cmdPublishOnce(0.0, 0.0);
     return;
   }
   State dest_diff = des.global_dest - *curr_state_, interp_diff = interp_state - *curr_state_;
@@ -71,29 +56,72 @@ void LocalPlanner::calculateVelocityAndPublishBase(double dt) {
     double heading_deviation = Angle(std::atan2(dest_diff.y, dest_diff.x)) - curr_state_->yaw;
     double delta_yaw = dest_diff.yaw;
     if (std::abs(dest_diff.asVector2().dot(curr_state_->oritUnit2())) < 0.1 && std::abs(delta_yaw) < M_PI / 24) {
-      model_.reset();
+      cmdPublishOnce(0.0, 0.0);
       is_finished_ = true;
       ROS_INFO_STREAM(name_ << " FINISHED " << dest_diff);
     } else {
-      if (std::abs(heading_deviation) > M_PI_2) heading_deviation = Angle(heading_deviation + M_PI);
-      model_.setVx(1.0 * sign(dest_diff.asVector2().dot(curr_state_->oritUnit2())) * dest_diff.diff());
-      model_.setVw(4.0 * delta_yaw + 1.0 * heading_deviation * dest_diff.norm());
+      if (std::abs(heading_deviation) > M_PI_2)
+        heading_deviation = Angle(heading_deviation + M_PI);
+
+      cmdPublishOnce(
+          1.0 * sign(dest_diff.asVector2().dot(curr_state_->oritUnit2())) * dest_diff.diff(),
+          4.0 * delta_yaw + 1.0 * heading_deviation * dest_diff.norm()
+      );
       // TODO: DYNAMIC PATH PLANNING USING REEDS-SHEPP CURVES
       ROS_INFO_STREAM(name_ << " TUNING ");
     }
   } else {
-//    double vl = des.des_velocity(0), vr = des.des_velocity(1);
     double heading_deviation = Angle(std::atan2(interp_diff.y, interp_diff.x)) - curr_state_->yaw;
-    if (std::abs(heading_deviation) > M_PI_2) {
-      heading_deviation = Angle(heading_deviation + M_PI);
-    }
+    if (std::abs(heading_deviation) > M_PI_2)
+      heading_deviation = Angle::normalize(heading_deviation + M_PI);
+
     double vx = des.des_velocity(0), vw = des.des_velocity(1);
-//    double delta_yaw = des.des_state.yaw - curr_state_->yaw;
-    model_.setVx(vx + 1.0 * sign(vx) * interp_diff.asVector2().dot(curr_state_->oritUnit2()));
-    model_.setVw(vw + 6.0 * static_cast<double>(interp_diff.yaw) + 1.0 * heading_deviation * interp_diff.norm());
+    cmdPublishOnce(
+        vx + 1.0 * sign(vx) * interp_diff.asVector2().dot(curr_state_->oritUnit2()),
+        vw + 6.0 * static_cast<double>(interp_diff.yaw) + 1.0 * heading_deviation * interp_diff.norm()
+    );
     ROS_INFO_STREAM(name_ << " TRACING " << model_.getVelocity());
   }
-  publishOnce(model_.getVelocity());
 }
 
+void LocalPlannerSim::cmdPublishOnce(double vx, double vw) {
+  model_.setVx(vx);
+  model_.setVw(vw);
+  const auto &v = model_.getVelocity();
+  std_msgs::Float64 left_wheel_velocity, right_wheel_velocity;
+  left_wheel_velocity.data = v.first / Constants::WHEEL_RADIUS;
+  right_wheel_velocity.data = v.second / Constants::WHEEL_RADIUS;
+  left_pub_.publish(left_wheel_velocity);
+  right_pub_.publish(right_wheel_velocity);
+}
 
+LocalPlannerSim::LocalPlannerSim(std::string name, const std::vector<std::pair<double, State>> &states)
+    : LocalPlannerBase(std::move(name), states) {
+  left_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/left_wheel_controller/command", 1);
+  right_pub_ = nh_.advertise<std_msgs::Float64>("/" + name_ + "/right_wheel_controller/command", 1);
+  state_sub_ = nh_.subscribe<geometry_msgs::Pose>("/agent_states/" + name_ + "/robot_base", 1,
+                                                  [=](auto &&PH1) { stateUpdate(std::forward<decltype(PH1)>(PH1)); });
+}
+
+void LocalPlannerSim::stateUpdate(const geometry_msgs::Pose::ConstPtr &p) {
+  const auto &q = p->orientation;
+  Angle yaw(std::atan2(2 * (q.w * q.z + q.x * q.y), 1 - 2 * (q.y * q.y + q.z * q.z)));
+  curr_state_ = std::make_unique<State>(p->position.x, p->position.y, yaw);
+}
+
+LocalPlannerReal::LocalPlannerReal(const std::string &name, const std::vector<std::pair<double, State>> &states) :
+    LocalPlannerBase(name, states), odom_(name, states.front().second) {
+  cmd_pub_ = nh_.advertise<geometry_msgs::Twist>("/cmd_vel", 1);
+  timer_ = nh_.createTimer(ros::Rate(20), &LocalPlannerReal::stateUpdate, this);
+}
+
+void LocalPlannerReal::stateUpdate(const ros::TimerEvent &) {
+  curr_state_ = std::make_unique<State>(odom_.getState());
+}
+
+void LocalPlannerReal::cmdPublishOnce(double vx, double vw) {
+  geometry_msgs::Twist t;
+  t.linear.x = vx;
+  t.angular.z = vw;
+  cmd_pub_.publish(t);
+}

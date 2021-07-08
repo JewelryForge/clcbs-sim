@@ -28,7 +28,7 @@ int main(int argc, char **argv) {
 //   schedule_file = "/home/jewelry/catkin_ws/CLCBS_real/src/clcbs_driving/output.yaml";
   config = YAML::LoadFile(schedule_file);
   auto schedule = config["schedule"];
-  std::vector<std::unique_ptr<LocalPlanner>> controllers;
+  std::vector<std::unique_ptr<LocalPlannerSim>> controllers;
   PlanVisualizer visualizer;
   int i = 0;
   for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
@@ -40,7 +40,7 @@ int main(int argc, char **argv) {
       t_states.emplace_back(t, State(x - Constants::MAP_SIZE_X / 2, y - Constants::MAP_SIZE_Y / 2, -yaw));
     }
     visualizer.addPlan(t_states);
-    controllers.push_back(std::make_unique<LocalPlanner>(key, t_states));
+    controllers.push_back(std::make_unique<LocalPlannerSim>(key, t_states));
     if (++i == 3) break;
   }
 
@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
   ros::Duration(0.5).sleep();
   visualizer.publishOnce();
   ros::Duration(0.5).sleep();
-  while(!LocalPlanner::activateAll());
+  while(!LocalPlannerSim::activateAll());
   auto rate = ros::Rate(50);
   while (ros::ok()) {
     ros::spinOnce();

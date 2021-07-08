@@ -142,7 +142,7 @@ void Poly3StateManager::interpolateVelocity(int,
   }
 }
 
-RealStateManager::RealStateManager(const std::vector<std::pair<double, State>> &states) :
+MiniAccStateManager::MiniAccStateManager(const std::vector<std::pair<double, State>> &states) :
     StateManager(states), init_yaw_(states.front().second.yaw) {
   Eigen::SparseMatrix<double> hessian, constrains;
   Eigen::Matrix<double, -1, 2> constants;
@@ -228,9 +228,9 @@ RealStateManager::RealStateManager(const std::vector<std::pair<double, State>> &
 //  std::cout << "SOLUTION: \n" << angular_params_.transpose() << std::endl;
 }
 
-void RealStateManager::interpolateVelocity(int idx, double dt,
-                                           const std::pair<double, Transition> &s_p,
-                                           const std::pair<double, Transition> &s_n) {
+void MiniAccStateManager::interpolateVelocity(int idx, double dt,
+                                              const std::pair<double, Transition> &s_p,
+                                              const std::pair<double, Transition> &s_n) {
   Eigen::Matrix<double, 1, 6> dt_pow, coeff;
   dt_pow.setOnes();
   coeff.setZero();

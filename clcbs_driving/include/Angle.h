@@ -8,6 +8,7 @@ class Angle {
   Angle() = default;
   explicit Angle(double angle);
   static Angle Degree(double degree);
+  static double normalize(double);
 
   friend Angle operator+(const Angle &a, const Angle &b) { return Angle(a.angle_ + b.angle_); }
   friend Angle operator+(const Angle &a, double b) { return a + Angle(b); }
