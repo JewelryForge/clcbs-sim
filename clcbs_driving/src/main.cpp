@@ -49,7 +49,7 @@ int main(int argc, char **argv) {
   ros::Duration(0.5).sleep();
   visualizer.publishOnce();
   ros::Duration(0.5).sleep();
-  while(!LocalPlannerSim::activateAll());
+  while (!LocalPlannerSim::activateAll());
   auto rate = ros::Rate(50);
   while (ros::ok()) {
     ros::spinOnce();
@@ -57,6 +57,6 @@ int main(int argc, char **argv) {
       ptr->calculateVelocityAndPublish();
     }
     rate.sleep();
-}
+  }
 
 }

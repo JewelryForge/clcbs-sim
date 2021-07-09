@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.10)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -32,6 +32,8 @@ include_directories(
 
 add_library(lib src/CarModel.cpp src/LocalPlanner.cpp src/StateManager.cpp src/Angle.cpp src/PlanVisualizer.cpp src/WheelOdometer.cpp)
 
+add_executable(odometry src/odom.cpp)
 add_executable(clcbs_driving src/main.cpp)
 
+target_link_libraries(odometry lib ${catkin_LIBRARIES} OsqpEigen::OsqpEigen)
 target_link_libraries(clcbs_driving lib OsqpEigen::OsqpEigen ${catkin_LIBRARIES} yaml-cpp ${Boost_LIBRARIES})

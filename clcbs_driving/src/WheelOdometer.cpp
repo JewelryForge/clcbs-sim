@@ -16,7 +16,9 @@ WheelOdometer::WheelOdometer(const std::string &agent_name, State init_state) :
 }
 
 void WheelOdometer::stateUpdate(const hunter_msgs::HunterStatus::ConstPtr &p) {
-  std::tie(linear_velocity_, angular_velocity_) = std::make_tuple(p->linear_velocity, p->angular_velocity);
+  linear_velocity_ = p->linear_velocity;
+  angular_velocity_ = linear_velocity_ / (sign(p->angular_velocity) * 0.579 / 2 + 0.650 / std::tan(p->angular_velocity));
+  ROS_INFO("State Update: linear = %.1lf, angular = %.1lf", linear_velocity_, angular_velocity_);
   is_started_ = true;
 }
 
@@ -28,15 +30,17 @@ void WheelOdometer::integral(const ros::TimerEvent &e) {
     state_.y += x * std::sin(state_.yaw);
     state_.yaw += r;
     geometry_msgs::Pose p;
-    geometry_msgs::TransformStamped t;
-    t.transform.translation.x = p.position.x = state_.x;
-    t.transform.translation.y = p.position.y = state_.y;
-    t.transform.rotation.w = p.orientation.w = std::cos(state_.yaw / 2);
-    t.transform.rotation.z = p.orientation.z = std::sin(state_.yaw / 2);
+//    geometry_msgs::TransformStamped t;
+    /* t.transform.translation.x = */ p.position.x = state_.x;
+    /* t.transform.translation.y = */ p.position.y = state_.y;
+    /* t.transform.rotation.w = */ p.orientation.w = std::cos(state_.yaw / 2);
+    /* t.transform.rotation.z = */ p.orientation.z = std::sin(state_.yaw / 2);
     pub_.publish(p);
+    /*
     t.header.stamp = ros::Time::now();
     t.header.frame_id = "map";
     t.child_frame_id = name_ + "/odom";
     br_.sendTransform(t);
+    */
   }
 }
