@@ -5,3 +5,4 @@ CMakeLists.txt
 /benchmark
 /hunter_ros/hunter_base/src/hunter_sdk
 .idea
+.vscode

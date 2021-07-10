@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Grid1
         - /TF1/Frames1
         - /Marker1
       Splitter Ratio: 0.5511022210121155
@@ -35,7 +36,7 @@ Visualization Manager:
   Class: ""
   Displays:
     - Alpha: 0.5
-      Cell Size: 1
+      Cell Size: 0.20000000298023224
       Class: rviz/Grid
       Color: 160; 160; 164
       Enabled: true
@@ -66,114 +67,30 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: false
+        All Enabled: true
         agent0/agent_leftwheel_link:
-          Value: false
+          Value: true
         agent0/agent_rightwheel_link:
-          Value: false
-        agent0/desired_state:
           Value: true
         agent0/robot_base:
           Value: true
         agent0/robot_chassis:
-          Value: false
-        agent0/wheel_odom:
           Value: true
-        agent1/agent_leftwheel_link:
-          Value: false
-        agent1/agent_rightwheel_link:
-          Value: false
-        agent1/desired_state:
-          Value: true
-        agent1/robot_base:
-          Value: true
-        agent1/robot_chassis:
-          Value: false
-        agent1/wheel_odom:
-          Value: true
-        agent2/agent_leftwheel_link:
-          Value: false
-        agent2/agent_rightwheel_link:
-          Value: false
-        agent2/desired_state:
-          Value: true
-        agent2/robot_base:
-          Value: true
-        agent2/robot_chassis:
-          Value: false
-        agent2/wheel_odom:
-          Value: true
-        agent3/agent_leftwheel_link:
-          Value: false
-        agent3/agent_rightwheel_link:
-          Value: false
-        agent3/robot_base:
-          Value: true
-        agent3/robot_chassis:
-          Value: false
-        agent4/agent_leftwheel_link:
-          Value: false
-        agent4/agent_rightwheel_link:
-          Value: false
-        agent4/robot_base:
-          Value: true
-        agent4/robot_chassis:
-          Value: false
         map:
-          Value: false
-      Marker Scale: 15
+          Value: true
+      Marker Scale: 2
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
         map:
-          agent0/desired_state:
-            {}
           agent0/robot_base:
             agent0/agent_leftwheel_link:
               {}
             agent0/agent_rightwheel_link:
               {}
             agent0/robot_chassis:
-              {}
-          agent0/wheel_odom:
-            {}
-          agent1/desired_state:
-            {}
-          agent1/robot_base:
-            agent1/agent_leftwheel_link:
-              {}
-            agent1/agent_rightwheel_link:
-              {}
-            agent1/robot_chassis:
-              {}
-          agent1/wheel_odom:
-            {}
-          agent2/desired_state:
-            {}
-          agent2/robot_base:
-            agent2/agent_leftwheel_link:
-              {}
-            agent2/agent_rightwheel_link:
-              {}
-            agent2/robot_chassis:
-              {}
-          agent2/wheel_odom:
-            {}
-          agent3/robot_base:
-            agent3/agent_leftwheel_link:
-              {}
-            agent3/agent_rightwheel_link:
-              {}
-            agent3/robot_chassis:
-              {}
-          agent4/robot_base:
-            agent4/agent_leftwheel_link:
-              {}
-            agent4/agent_rightwheel_link:
-              {}
-            agent4/robot_chassis:
               {}
       Update Interval: 0
       Value: true
@@ -222,25 +139,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        agent_leftwheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        agent_rightwheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robot_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        robot_chassis:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: /agent1/robot_description
       TF Prefix: agent1
@@ -257,25 +155,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        agent_leftwheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        agent_rightwheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robot_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        robot_chassis:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: /agent2/robot_description
       TF Prefix: agent2
@@ -292,25 +171,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        agent_leftwheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        agent_rightwheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robot_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        robot_chassis:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: /agent3/robot_description
       TF Prefix: agent3
@@ -327,25 +187,6 @@ Visualization Manager:
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        agent_leftwheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        agent_rightwheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        robot_base:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        robot_chassis:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: /agent4/robot_description
       TF Prefix: agent4
@@ -357,7 +198,7 @@ Visualization Manager:
       Marker Topic: /path_visualizer
       Name: Marker
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
   Enabled: true
@@ -388,16 +229,16 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 76.68666076660156
+      Distance: 16.30093765258789
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -1.565049171447754
-        Y: -0.20343902707099915
-        Z: 0.02481294795870781
+        X: -0.1919689178466797
+        Y: -0.11838008463382721
+        Z: 0.02490326017141342
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false

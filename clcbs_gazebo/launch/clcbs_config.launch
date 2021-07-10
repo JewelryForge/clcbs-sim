@@ -8,7 +8,7 @@
    <group ns="$(arg ns_0)">
       <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
       <param name="robot_description" command="$(find xacro)/xacro $(find clcbs_gazebo)/models/agent/urdf/agent_sim.xacro ns:=$(arg ns_0)"/>
-      <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_0) -param robot_description -x -11.0 -y 14.0 -Y 0" />
+      <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_0) -param robot_description -x -3.0 -y 3.0 -Y -1.57" />
       <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller left_wheel_controller right_wheel_controller" />
       <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
       <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
@@ -20,7 +20,7 @@
    <group ns="$(arg ns_1)">
       <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
       <param name="robot_description" command="$(find xacro)/xacro $(find clcbs_gazebo)/models/agent/urdf/agent_sim.xacro ns:=$(arg ns_1)"/>
-      <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_1) -param robot_description -x 2.0 -y -23.0 -Y -1.57" />
+      <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_1) -param robot_description -x 0.0 -y 3.0 -Y -1.57" />
       <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller left_wheel_controller right_wheel_controller" />
       <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
       <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
@@ -32,7 +32,7 @@
    <group ns="$(arg ns_2)">
       <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
       <param name="robot_description" command="$(find xacro)/xacro $(find clcbs_gazebo)/models/agent/urdf/agent_sim.xacro ns:=$(arg ns_2)"/>
-      <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_2) -param robot_description -x 16.0 -y 18.0 -Y 1.57" />
+      <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_2) -param robot_description -x 3.0 -y 3.0 -Y -1.57" />
       <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller left_wheel_controller right_wheel_controller" />
       <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
       <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
@@ -40,29 +40,5 @@
       </node>
    </group>
 
-   <arg name="ns_3" value="agent3" />
-   <group ns="$(arg ns_3)">
-      <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
-      <param name="robot_description" command="$(find xacro)/xacro $(find clcbs_gazebo)/models/agent/urdf/agent_sim.xacro ns:=$(arg ns_3)"/>
-      <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_3) -param robot_description -x -13.0 -y -6.0 -Y -3.14" />
-      <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller left_wheel_controller right_wheel_controller" />
-      <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
-      <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
-         <param name="tf_prefix" value="$(arg ns_3)" />
-      </node>
-   </group>
-
-   <arg name="ns_4" value="agent4" />
-   <group ns="$(arg ns_4)">
-      <rosparam file="$(find clcbs_gazebo)/models/agent/config/gazebo_controller.yaml" command="load" />
-      <param name="robot_description" command="$(find xacro)/xacro $(find clcbs_gazebo)/models/agent/urdf/agent_sim.xacro ns:=$(arg ns_4)"/>
-      <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" args="-urdf -model $(arg ns_4) -param robot_description -x -12.0 -y 21.0 -Y 0" />
-      <node name="controller_spawner" pkg="controller_manager" type="spawner" args="joint_state_controller left_wheel_controller right_wheel_controller" />
-      <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
-      <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" >
-         <param name="tf_prefix" value="$(arg ns_4)" />
-      </node>
-   </group>
-
-   <node pkg="clcbs_gazebo" type="state_publisher.py" name="robot_base_tf_publisher" args="agent0/robot_base agent1/robot_base agent2/robot_base agent3/robot_base agent4/robot_base" />
+   <node pkg="clcbs_gazebo" type="state_publisher.py" name="robot_base_tf_publisher" args="agent0/robot_base agent1/robot_base agent2/robot_base" />
 </launch>

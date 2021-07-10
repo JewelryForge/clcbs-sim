@@ -4,17 +4,17 @@
 
     <xacro:property name="PI" value="3.1415926535897931" />
     <xacro:property name="mass" value="50" />
-    <xacro:property name="length" value="3" />
-    <xacro:property name="width" value="2" />
-    <xacro:property name="height" value="1" />
-    <xacro:property name="chassis_height" value="0.2" />
+    <xacro:property name="length" value="0.978" />
+    <xacro:property name="width" value="0.376" />
+    <xacro:property name="height" value="0.33" />
+    <xacro:property name="chassis_height" value="0.103" />
     <xacro:property name="caster_radius" value="${chassis_height/2}" />
     <xacro:property name="wheel_mass" value="0.5" />
     <xacro:property name="caster_mass" value="${wheel_mass}" />
-    <xacro:property name="wheel_radius" value="0.5" />
-    <xacro:property name="wheel_thickness" value="${wheel_radius/3}" />
-    <xacro:property name="base_to_back" value="1.0" />
-    <xacro:property name="base_to_caster" value="1.5" />
+    <xacro:property name="wheel_radius" value="0.164" />
+    <xacro:property name="wheel_thickness" value="0.1725" />
+    <xacro:property name="base_to_back" value="0.1725" />
+    <xacro:property name="base_to_caster" value="0.6" />
     <xacro:property name="center_span" value="0.0" />
 
     <xacro:property name="urdf_src" value="$(find clcbs_gazebo)/models/agent/urdf/" />

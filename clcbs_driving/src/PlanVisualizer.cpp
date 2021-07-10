@@ -26,8 +26,8 @@ void PlanVisualizer::addPlan(const std::vector<std::pair<double, State>> &states
   const auto &dest_state = states.back().second;
   marker.pose.position.x = dest_state.x;
   marker.pose.position.y = dest_state.y;
-  marker.pose.position.x += std::cos(dest_state.yaw) * 0.5;
-  marker.pose.position.y += std::sin(dest_state.yaw) * 0.5;
+  marker.pose.position.x += std::cos(dest_state.yaw) * (Constants::CAR_LENGTH / 2 - Constants::WHEEL_RADIUS);
+  marker.pose.position.y += std::sin(dest_state.yaw) * (Constants::CAR_LENGTH / 2 - Constants::WHEEL_RADIUS);
   marker.pose.orientation.w = std::cos(dest_state.yaw / 2);
   marker.pose.orientation.z = std::sin(dest_state.yaw / 2);
   marker.scale.x = Constants::CAR_LENGTH;
@@ -41,7 +41,7 @@ void PlanVisualizer::addPlan(const std::vector<std::pair<double, State>> &states
   marker.pose.position.y = 0.0;
   marker.pose.orientation.w = 1.0;
   marker.pose.orientation.z = 0.0;
-  marker.scale.x = 0.2;
+  marker.scale.x = 0.1;
   marker.scale.y = 0.0;
   marker.scale.z = 0.0;
   for (const auto &t_state : states) {

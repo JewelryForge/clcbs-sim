@@ -2,14 +2,6 @@
 import os
 import argparse
 import yaml
-import math
-import numpy as np
-import std_msgs.msg as std_msgs
-import geometry_msgs.msg as geometry_msgs
-import gazebo_msgs.srv as gazebo_srvs
-import rospy
-import PyKDL
-import tf
 
 
 if __name__ == '__main__':
@@ -20,9 +12,11 @@ if __name__ == '__main__':
     config = None
     with open(args.map) as map_file:
         config = yaml.load(map_file, Loader=yaml.FullLoader)
-    agents, map = config['agents'], config['map']
-    map_size = map['dimensions']
-    dst = os.path.join(os.path.abspath('.'), '../launch/clcbs_config.launch')
+    agents, the_map = config['agents'], config['map']
+    map_size = the_map['dimensions']
+    dst = os.popen("rospack find clcbs_gazebo").read().strip('\n') + '/launch/clcbs_config.launch'
+    print('Write Launch File to', dst)
+    # dst = os.path.join(os.path.abspath('.'), '..')
     with open(dst, 'w') as of:
         of.write(
             f'<launch>\n'

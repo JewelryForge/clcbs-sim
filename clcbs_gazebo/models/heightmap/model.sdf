@@ -7,7 +7,7 @@
         <geometry>
           <heightmap>
             <uri>model://heightmap/map/map.png</uri>
-            <size>60 60 2</size>
+            <size>12 12 2</size>
             <pos>0 0 0</pos>
           </heightmap>
         </geometry>
@@ -35,12 +35,8 @@
               <min_height>2</min_height>
               <fade_dist>5</fade_dist>
             </blend>
-            <blend>
-              <min_height>4</min_height>
-              <fade_dist>5</fade_dist>
-            </blend>
             <uri>model://heightmap/map/map.png</uri>
-            <size>60 60 2</size>
+            <size>12 12 2</size>
             <pos>0 0 0</pos>
           </heightmap>
         </geometry>

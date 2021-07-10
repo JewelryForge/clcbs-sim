@@ -4,22 +4,19 @@
 #include "Constants.h"
 class CarModel {
  public:
-  friend class FeedbackController;
   CarModel();
-  explicit CarModel(double rotation_radius);
-  void setThr(double thr);
-  void setOrt(double ort);
-  void setRad(double radius);
-  void setVx(double vx);
-  void setVw(double vw);
+  CarModel(double car_width, double wheel_base, double max_linear_velocity, double max_turning_angle);
+  void setTurningAngle(double turning);
+  void setLinearVelocity(double vx);
+  void setAngularVelocity(double vw);
   void reset();
-  double vx() const;
-  double vw() const;
-  const std::pair<double, double> getVelocity() const;
+  double getLinearVelocity() const;
+  double getAngularVelocity() const;
+  std::pair<double, double> getVelocity() const;
  private:
-  double thr_, ort_;
-  double vx_max_, rot_radius_, width_;
+  double linear_, turning_;
+  double car_width_, wheel_base_;
+  double max_linear_, max_turning_, min_rotation_radius_;
 };
-
 
 #endif //CLCBS_DRIVING_INCLUDE_CARMODEL_H_

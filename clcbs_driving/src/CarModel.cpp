@@ -1,48 +1,55 @@
 #include "CarModel.h"
 #include <iostream>
 #include <tuple>
+#include <cmath>
 
-CarModel::CarModel() : CarModel(Constants::MINIMUM_ROTATION_RADIUS) {}
+CarModel::CarModel() : CarModel(Constants::CAR_WIDTH, Constants::WHEEL_BASE,
+                                Constants::MAXIMUM_LINEAR_VELOCITY,
+                                Constants::MAXIMUM_TURNING_ANGLE) {}
 
-CarModel::CarModel(double rotation_radius) : vx_max_(Constants::MAXIMUM_LINEAR_VELOCITY),
-                                             rot_radius_(rotation_radius), width_(Constants::CAR_WIDTH),
-                                             ort_(0.), thr_(0.) {}
-
-void CarModel::setThr(double thr) {
-  thr_ = std::max(std::min(thr, 1.0), -1.0);
-}
-void CarModel::setVx(double vx) {
-  setThr(vx / vx_max_);
-}
-
-void CarModel::setOrt(double ort) {
-  ort_ = std::max(std::min(ort, 1.0), -1.0);
+CarModel::CarModel(double car_width, double wheel_base, double max_linear_velocity, double max_turning_angle) :
+    car_width_(car_width),
+    wheel_base_(wheel_base),
+    max_linear_(max_linear_velocity),
+    max_turning_(max_turning_angle),
+    min_rotation_radius_(wheel_base / std::tan(max_turning_angle) + car_width / 2),
+    linear_(0.), turning_(0.) {
 }
 
-void CarModel::setVw(double vw) {
-  vw == 0 ? setOrt(0.) : setRad(vx() / vw);
+void CarModel::setLinearVelocity(double vx) {
+  linear_ = std::max(std::min(vx, max_linear_), -max_linear_);
 }
 
-void CarModel::setRad(double radius) {
-  if (radius == 0.0) setOrt(1);
-  else if (radius == -0.0) setOrt(-1);
-  setOrt(rot_radius_ / radius);
+void CarModel::setTurningAngle(double turning) {
+  turning_ = std::max(std::min(turning, max_turning_), -max_turning_);
+}
+
+void CarModel::setAngularVelocity(double vw) {
+  if (vw == 0.0) {
+    setTurningAngle(0.0);
+    return;
+  }
+  double radius = std::max(getLinearVelocity() / std::abs(vw), min_rotation_radius_);
+  double turning_angle = std::atan2(wheel_base_, radius - car_width_ / 2);
+  // std::cout << radius << ' ' << turning_angle << std::endl;
+  setTurningAngle(sign(vw) * sign(linear_) * turning_angle);
 }
 
 void CarModel::reset() {
-  setThr(0);
-  setOrt(0);
+  setLinearVelocity(0);
+  setTurningAngle(0);
 }
 
-double CarModel::vx() const {
-  return thr_ * vx_max_;
+double CarModel::getLinearVelocity() const {
+  return linear_;
 }
 
-double CarModel::vw() const {
-  return ort_ * vx() / rot_radius_;
+double CarModel::getAngularVelocity() const {
+  return sign(turning_) * getLinearVelocity() / (wheel_base_ / std::tan(std::abs(turning_)) + car_width_ / 2);
 }
 
-const std::pair<double, double> CarModel::getVelocity() const {
-  return {vx() - vw() * width_ / 2, vx() + vw() * width_ / 2};
+std::pair<double, double> CarModel::getVelocity() const {
+  double vx = getLinearVelocity(), vw = getAngularVelocity();
+  return {vx - vw * car_width_ / 2, vx + vw * car_width_ / 2};
 }
 

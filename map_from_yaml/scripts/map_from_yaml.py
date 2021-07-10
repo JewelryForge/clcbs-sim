@@ -13,6 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description='Generate map.png from a yaml file')
     parser.add_argument('-i', type=str, required=True)
     parser.add_argument('-o', type=str, required=True)
+    parser.add_argument('-c', type=str)
     args = parser.parse_args()
     yaml.warnings({'YAMLLoadWarning': False})
     f = open(args.i, 'r', encoding='utf-8')
@@ -43,8 +44,20 @@ def main():
     edge.fill(255)
     edge[x_edge:map_size[0] + x_edge, y_edge:map_size[1] + y_edge] = map_image
     edge = cv2.resize(edge, (513, 513))
-    print('Done')
+    print('Write Map Image to', args.o)
     cv2.imwrite(args.o, edge)
+
+    if hasattr(args, 'c'):
+        print('Write MapServer Config File to', args.c)
+        with open(args.c, 'w') as f:
+            f.write(
+                f'image: map/map.png \n'
+                f'resolution: {dimensions[0] * 1.2 / 513:.5f} \n'
+                f'origin: [{-dimensions[0] * 0.6:.2f}, {-dimensions[0] * 0.6:.2f}, 0.0] \n'
+                'occupied_thresh: 0.65 \n'
+                'free_thresh: 0.196 \n'
+                'negate: 1 \n'
+            )
 
 
 if __name__ == '__main__':

@@ -1,11 +1,6 @@
 #include "CarModel.h"
 #include "LocalPlanner.h"
 #include <iostream>
-#include "PID.hpp"
-#include "Angle.h"
-#include "Eigen/Core"
-#include "Eigen/Geometry"
-#include "csignal"
 #include "ctime"
 #include <yaml-cpp/yaml.h>
 #include "StateManager.h"
@@ -28,9 +23,10 @@ int main(int argc, char **argv) {
 //   schedule_file = "/home/jewelry/catkin_ws/CLCBS_real/src/clcbs_driving/output.yaml";
   config = YAML::LoadFile(schedule_file);
   auto schedule = config["schedule"];
+ std::cout << schedule << std::endl;
   std::vector<std::unique_ptr<LocalPlannerSim>> controllers;
   PlanVisualizer visualizer;
-  int i = 0;
+  // int i = 0;
   for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
     std::string key = iter->first.as<std::string>();
     // key = "agent2";
@@ -41,7 +37,7 @@ int main(int argc, char **argv) {
     }
     visualizer.addPlan(t_states);
     controllers.push_back(std::make_unique<LocalPlannerSim>(key, t_states));
-    if (++i == 3) break;
+    // if (++i == 3) break;
   }
 
   ROS_INFO("SETTING UP FINISHED");

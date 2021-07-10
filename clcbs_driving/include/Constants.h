@@ -2,13 +2,14 @@
 
 namespace Constants {
 
-static double MINIMUM_ROTATION_RADIUS = 2.0;
-static double MAXIMUM_LINEAR_VELOCITY = 4.0;
-static double WHEEL_RADIUS = 0.5;
-static double CAR_WIDTH = 2.0;
-static double CAR_LENGTH = 3.0;
-static double MAP_SIZE_X = 50.0;
-static double MAP_SIZE_Y = 50.0;
+static double MAXIMUM_TURNING_ANGLE = 30.0 / 180 * 3.141592653589;
+static double MAXIMUM_LINEAR_VELOCITY = 1.2;
+static double WHEEL_RADIUS = 0.164;
+static double WHEEL_BASE = 0.65;
+static double CAR_WIDTH = 0.718;
+static double CAR_LENGTH = 0.980;
+static double MAP_SIZE_X = 10.0;
+static double MAP_SIZE_Y = 10.0;
 
 void loadFromRosParam();
 void loadFromYamlFile(std::string);

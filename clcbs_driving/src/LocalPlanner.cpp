@@ -34,12 +34,12 @@ void LocalPlannerBase::calculateVelocityAndPublish() {
 }
 
 void LocalPlannerBase::tfPublishOnce(const State &s) {
-//  tf::Transform transform;
-//  transform.setOrigin(tf::Vector3(interp_state.x, interp_state.y, 0));
-//  tf::Quaternion q;
-//  q.setRPY(0, 0, interp_state.yaw);
-//  transform.setRotation(q);
-//  tf_broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", name_ + "/desired_state"));
+  tf::Transform transform;
+  transform.setOrigin(tf::Vector3(s.x, s.y, 0));
+  tf::Quaternion q;
+  q.setRPY(0, 0, s.yaw);
+  transform.setRotation(q);
+  tf_broadcaster_.sendTransform(tf::StampedTransform(transform, ros::Time::now(), "map", name_ + "/desired_state"));
 }
 
 void LocalPlannerBase::calculateVelocityAndPublishBase(double dt) {
@@ -52,7 +52,7 @@ void LocalPlannerBase::calculateVelocityAndPublishBase(double dt) {
   }
   State dest_diff = des.global_dest - *curr_state_, interp_diff = interp_state - *curr_state_;
 
-  if (state_manager_->finished or dest_diff.norm() < 2.0) {
+  if (state_manager_->finished or dest_diff.norm() < 0.5) { // TODO: GET A SMARTER STRATEGY
     double heading_deviation = Angle(std::atan2(dest_diff.y, dest_diff.x)) - curr_state_->yaw;
     double delta_yaw = dest_diff.yaw;
     if (std::abs(dest_diff.asVector2().dot(curr_state_->oritUnit2())) < 0.1 && std::abs(delta_yaw) < M_PI / 24) {
@@ -76,6 +76,7 @@ void LocalPlannerBase::calculateVelocityAndPublishBase(double dt) {
       heading_deviation = Angle::normalize(heading_deviation + M_PI);
 
     double vx = des.des_velocity(0), vw = des.des_velocity(1);
+    ROS_INFO_STREAM("vw: " << vw << 6.0 * static_cast<double>(interp_diff.yaw) << 1.0 * heading_deviation * interp_diff.norm());
     cmdPublishOnce(
         vx + 1.0 * sign(vx) * interp_diff.asVector2().dot(curr_state_->oritUnit2()),
         vw + 6.0 * static_cast<double>(interp_diff.yaw) + 1.0 * heading_deviation * interp_diff.norm()
@@ -85,9 +86,11 @@ void LocalPlannerBase::calculateVelocityAndPublishBase(double dt) {
 }
 
 void LocalPlannerSim::cmdPublishOnce(double vx, double vw) {
-  model_.setVx(vx);
-  model_.setVw(vw);
+  ROS_INFO_STREAM("vx: " << vx << " vw: " << vw);
+  model_.setLinearVelocity(vx);
+  model_.setAngularVelocity(vw);
   const auto &v = model_.getVelocity();
+  ROS_INFO_STREAM("vw: " << vw << ' ' << v);
   std_msgs::Float64 left_wheel_velocity, right_wheel_velocity;
   left_wheel_velocity.data = v.first / Constants::WHEEL_RADIUS;
   right_wheel_velocity.data = v.second / Constants::WHEEL_RADIUS;
@@ -120,8 +123,10 @@ void LocalPlannerReal::stateUpdate(const ros::TimerEvent &) {
 }
 
 void LocalPlannerReal::cmdPublishOnce(double vx, double vw) {
+  model_.setLinearVelocity(vx);
+  model_.setAngularVelocity(vw);
   geometry_msgs::Twist t;
-  t.linear.x = vx;
-  t.angular.z = vw;
+  t.linear.x = model_.getLinearVelocity();
+//  t.angular.z = model_.getOrt(); //TODO: FINISH THIS
   cmd_pub_.publish(t);
 }
