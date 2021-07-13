@@ -1,7 +1,3 @@
-//
-// Created by jewelry on 30/06/2021.
-//
-
 #include "WheelOdometer.h"
 #include "Constants.h"
 #include <geometry_msgs/Pose.h>

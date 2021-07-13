@@ -30,10 +30,10 @@ include_directories(
         ${YAML_CPP_INCLUDE_DIR}
 )
 
-add_library(lib src/CarModel.cpp src/LocalPlanner.cpp src/StateManager.cpp src/Angle.cpp src/PlanVisualizer.cpp src/WheelOdometer.cpp)
+add_library(lib src/CarModel.cpp src/LocalPlanner.cpp src/StateManager.cpp src/PlanVisualizer.cpp src/WheelOdometer.cpp src/Angle.cpp)
 
 add_executable(odometry src/odom.cpp)
-add_executable(clcbs_driving src/main.cpp)
+add_executable(tracking src/main.cpp)
 
 target_link_libraries(odometry lib ${catkin_LIBRARIES} OsqpEigen::OsqpEigen)
-target_link_libraries(clcbs_driving lib OsqpEigen::OsqpEigen ${catkin_LIBRARIES} yaml-cpp ${Boost_LIBRARIES})
+target_link_libraries(tracking lib OsqpEigen::OsqpEigen ${catkin_LIBRARIES} yaml-cpp ${Boost_LIBRARIES})

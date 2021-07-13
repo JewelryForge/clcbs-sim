@@ -2,6 +2,8 @@
 #define CLCBS_DRIVING_INCLUDE_CARMODEL_H_
 #include <tuple>
 #include "Constants.h"
+
+// An Ackerman chassis expressed by linear velocity and front Wheel inside turning angle
 class CarModel {
  public:
   CarModel();
@@ -11,8 +13,9 @@ class CarModel {
   void setAngularVelocity(double vw);
   void reset();
   double getLinearVelocity() const;
+  double getTurningAngle() const;
   double getAngularVelocity() const;
-  std::pair<double, double> getVelocity() const;
+  std::pair<double, double> getWheelVelocity() const;
  private:
   double linear_, turning_;
   double car_width_, wheel_base_;

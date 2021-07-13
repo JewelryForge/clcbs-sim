@@ -1,5 +1,4 @@
 #include "CarModel.h"
-#include <iostream>
 #include <tuple>
 #include <cmath>
 
@@ -31,7 +30,6 @@ void CarModel::setAngularVelocity(double vw) {
   }
   double radius = std::max(getLinearVelocity() / std::abs(vw), min_rotation_radius_);
   double turning_angle = std::atan2(wheel_base_, radius - car_width_ / 2);
-  // std::cout << radius << ' ' << turning_angle << std::endl;
   setTurningAngle(sign(vw) * sign(linear_) * turning_angle);
 }
 
@@ -44,11 +42,15 @@ double CarModel::getLinearVelocity() const {
   return linear_;
 }
 
+double CarModel::getTurningAngle() const {
+  return turning_;
+}
+
 double CarModel::getAngularVelocity() const {
   return sign(turning_) * getLinearVelocity() / (wheel_base_ / std::tan(std::abs(turning_)) + car_width_ / 2);
 }
 
-std::pair<double, double> CarModel::getVelocity() const {
+std::pair<double, double> CarModel::getWheelVelocity() const {
   double vx = getLinearVelocity(), vw = getAngularVelocity();
   return {vx - vw * car_width_ / 2, vx + vw * car_width_ / 2};
 }

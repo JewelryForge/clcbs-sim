@@ -10,7 +10,6 @@
 #include "StateManager.h"
 #include "PlanVisualizer.h"
 #include "CarModel.h"
-#include "PID.hpp"
 #include "WheelOdometer.h"
 
 class LocalPlannerBase {

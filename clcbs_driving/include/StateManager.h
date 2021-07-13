@@ -5,7 +5,7 @@
 #include <vector>
 #include <tuple>
 #include <functional>
-#include "Angle.h"
+#include "Angle.hpp"
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 #include <OsqpEigen/OsqpEigen.h>
