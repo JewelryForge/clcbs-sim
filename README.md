@@ -1,6 +1,6 @@
 # CL-CBS-Simulation
 
-This is a gazebo and Songling Hunter simulation of [**Car-Like Conflict Based Search (CL-CBS)**](https://github.com/APRIL-ZJU/CL-CBS). In gazebo, a differential driven model with minimum rotation radius constrain  and in physical environment Hunter robot with Ackerman chassis are used for simulation.
+This is a gazebo simulation and Songling Hunter experiments of [**Car-Like Conflict Based Search (CL-CBS)**](https://github.com/APRIL-ZJU/CL-CBS). In gazebo, a differential driven model with minimum rotation radius constrain is used for simulation.
 
 ## Requirements
 [**osqp**](https://osqp.org/docs/get_started/sources.html#build-from-sources)
