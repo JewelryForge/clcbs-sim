@@ -1,0 +1,14 @@
+<launch>
+    <arg name="map"/>
+    <arg name="schedule"/>
+    <group ns="config">
+        <rosparam file="$(arg map)" command="load"/>
+        <rosparam file="$(arg schedule)" command="load"/>
+    </group>
+
+    <param name="is_sim" value="true"/>
+    <param name="is_real" value="false"/>
+    <param name="agent_binding" value="agent0"/>
+
+    <node pkg="clcbs_driving" type="tracking" name="Tracking" output="screen"/>
+</launch>

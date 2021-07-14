@@ -7,7 +7,7 @@
 #include <ros/ros.h>
 #include <tf/transform_broadcaster.h>
 
-#include "StateManager.h"
+#include "GlobalPlanner.h"
 #include "PlanVisualizer.h"
 #include "CarModel.h"
 #include "WheelOdometer.h"
@@ -31,7 +31,7 @@ class LocalPlannerBase {
   std::unique_ptr<State> curr_state_;
   std::string name_;
   bool is_finished_ = false;
-  std::unique_ptr<StateManager> state_manager_;
+  std::unique_ptr<GlobalPlanner> state_manager_;
   ros::Time t_start_;
   CarModel model_;
 };

@@ -10,7 +10,7 @@ std::vector<LocalPlannerBase *> LocalPlannerBase::all_controller_;
 
 LocalPlannerBase::LocalPlannerBase(std::string name, const std::vector<std::pair<double, State>> &states)
     : name_(std::move(name)) {
-  state_manager_ = std::make_unique<MiniAccStateManager>(states);
+  state_manager_ = std::make_unique<MiniAccGlobal>(states);
   all_controller_.push_back(this);
 }
 

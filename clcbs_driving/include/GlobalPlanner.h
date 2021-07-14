@@ -61,9 +61,9 @@ struct Transition {
   Move::MoveType move = Move::STOP; // next move
 };
 
-class StateManager {
+class GlobalPlanner {
  public:
-  explicit StateManager(const std::vector<std::pair<double, State>> &states);
+  explicit GlobalPlanner(const std::vector<std::pair<double, State>> &states);
   const Instruction &operator()(double t);
   bool finished = false;
  protected:
@@ -73,14 +73,14 @@ class StateManager {
   std::vector<std::pair<double, Transition>> logs_;
 };
 
-class Poly3StateManager : public StateManager {
+class Poly3Global : public GlobalPlanner {
   void interpolateVelocity(int /* idx */, double dt, const std::pair<double, Transition> &s_p,
                            const std::pair<double, Transition> &s_n) override;
 };
 
-class MiniAccStateManager : public StateManager {
+class MiniAccGlobal : public GlobalPlanner {
  public:
-  explicit MiniAccStateManager(const std::vector<std::pair<double, State>> &states);
+  explicit MiniAccGlobal(const std::vector<std::pair<double, State>> &states);
  private:
   void interpolateVelocity(int idx, double dt, const std::pair<double, Transition> &s_p,
                            const std::pair<double, Transition> &s_n) override;

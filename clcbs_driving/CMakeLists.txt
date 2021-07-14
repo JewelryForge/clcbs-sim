@@ -30,7 +30,7 @@ include_directories(
         ${YAML_CPP_INCLUDE_DIR}
 )
 
-add_library(lib src/CarModel.cpp src/LocalPlanner.cpp src/StateManager.cpp src/PlanVisualizer.cpp src/WheelOdometer.cpp src/Angle.cpp)
+add_library(lib src/CarModel.cpp src/LocalPlanner.cpp src/GlobalPlanner.cpp src/PlanVisualizer.cpp src/WheelOdometer.cpp src/Angle.cpp)
 
 add_executable(odometry src/odom.cpp)
 add_executable(tracking src/main.cpp)

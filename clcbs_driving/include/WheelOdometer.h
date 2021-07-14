@@ -9,7 +9,7 @@
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 #include <Eigen/Core>
-#include "StateManager.h"
+#include "GlobalPlanner.h"
 #include "tf2_ros/transform_broadcaster.h"
 #include "hunter_msgs/HunterStatus.h"
 

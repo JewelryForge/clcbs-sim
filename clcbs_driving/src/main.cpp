@@ -3,47 +3,46 @@
 #include <iostream>
 #include "ctime"
 #include <yaml-cpp/yaml.h>
-#include "StateManager.h"
+#include "GlobalPlanner.h"
 #include <boost/program_options.hpp>
 #include "PlanVisualizer.h"
+#include <xmlrpcpp/XmlRpcValue.h>
 using namespace std;
 
-int main(int argc, char **argv) {
-  // Load command line parameters -- -s <SCHEDULE_FILE>
-  std::string schedule_file;
-  boost::program_options::options_description desc("Allowed options");
-  desc.add_options()
-      ("help", "produce help message")
-      ("sch,s", boost::program_options::value(&schedule_file) /* ->required() */, "schedule file (yaml)");
-  boost::program_options::variables_map vm;
-  boost::program_options::store(boost::program_options::parse_command_line(argc, argv, desc), vm);
-  boost::program_options::notify(vm);
-  YAML::Node config = YAML::LoadFile(schedule_file);
-  auto schedule = config["schedule"];
+double toNum(const XmlRpc::XmlRpcValue &v) {
+  if (v.getType() == XmlRpc::XmlRpcValue::TypeInt) return int(v);
+  else return double(v);
+}
 
-  // Load environment -- simulation, real or both
-  ros::init(argc, argv, "CLCBS_DRIVING");
+int main(int argc, char **argv) {
+  ros::init(argc, argv, "Tracking");
   ros::NodeHandle nh;
   bool is_sim, is_real;
   std::string which_agent;
-  nh.param("IS_SIM", is_sim, true);
-  nh.param("IS_REAL", is_real, false);
-  nh.param("WHICH_REAL_AGENT", which_agent, std::string("agent0"));
+  XmlRpc::XmlRpcValue schedule;
+  nh.getParam("is_sim", is_sim);
+  nh.getParam("is_real", is_real);
+  nh.getParam("agent_binding", which_agent);
+  nh.getParam("/config/schedule", schedule);
+  Constants::loadFromRosParam();
 
-  // Construct controllers with loaded schedules
   std::vector<std::unique_ptr<LocalPlannerBase>> controllers;
   PlanVisualizer visualizer;
-  for (auto iter = schedule.begin(); iter != schedule.end(); ++iter) {
-    std::string key = iter->first.as<std::string>();
+  for (const auto &a : schedule) {
+    std::string agent = a.first;
     std::vector<std::pair<double, State>> t_states;
-    for (auto s : iter->second) {
-      auto t = s["t"].as<double>(), x = s["x"].as<double>(), y = s["y"].as<double>(), yaw = s["yaw"].as<double>();
-      t_states.emplace_back(t, State(x - Constants::MAP_SIZE_X / 2, y - Constants::MAP_SIZE_Y / 2, -yaw));
+    for (int i = 0; i < a.second.size(); i++) {
+      const auto &mid_point = a.second[i];
+      t_states.emplace_back(toNum(mid_point["t"]),
+                            State(toNum(mid_point["x"]) - Constants::MAP_SIZE_X / 2,
+                                  toNum(mid_point["y"]) - Constants::MAP_SIZE_Y / 2,
+                                  -toNum(mid_point["yaw"])));
     }
     visualizer.addPlan(t_states);
-    controllers.push_back(std::make_unique<LocalPlannerSim>(key, t_states));
-    if (is_real && key == which_agent) controllers.push_back(std::make_unique<LocalPlannerReal>(key, t_states));
+    controllers.push_back(std::make_unique<LocalPlannerSim>(agent, t_states));
+    if (is_real && agent == which_agent) controllers.push_back(std::make_unique<LocalPlannerReal>(agent, t_states));
   }
+
   ROS_INFO("SETTING UP FINISHED");
   ros::Duration(0.5).sleep();
 
@@ -58,9 +57,7 @@ int main(int argc, char **argv) {
   auto rate = ros::Rate(50);
   while (ros::ok()) {
     ros::spinOnce();
-    for (auto &ptr : controllers) {
-      ptr->calculateVelocityAndPublish();
-    }
+    for (auto &ptr : controllers) ptr->calculateVelocityAndPublish();
     rate.sleep();
   }
 }

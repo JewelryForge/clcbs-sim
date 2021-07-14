@@ -1,4 +1,4 @@
-#include "StateManager.h"
+#include "GlobalPlanner.h"
 #include <cassert>
 #include <iomanip>
 #include <utility>
@@ -49,7 +49,7 @@ Eigen::Vector2d State::oritUnit2() const {
 Eigen::Vector3d State::oritUnit3() const {
   return {cos(yaw), sin(yaw), 0};
 }
-StateManager::StateManager(const std::vector<std::pair<double, State>> &states) {
+GlobalPlanner::GlobalPlanner(const std::vector<std::pair<double, State>> &states) {
   assert(states.size() >= 2 and states.front().first == 0);
   logs_.reserve(states.size());
   for (auto curr = states.begin(), next = curr + 1; next != states.end(); curr = next, ++next) {
@@ -81,13 +81,13 @@ StateManager::StateManager(const std::vector<std::pair<double, State>> &states) 
   logs_.emplace_back(states.back().first, Transition(states.back().second));
 //  std::cout << logs << std::endl;
 }
-void StateManager::interpolateVelocity(int idx, double dt,
+void GlobalPlanner::interpolateVelocity(int idx, double dt,
                                        const std::pair<double, Transition> &s_p,
                                        const std::pair<double, Transition> &s_n) {
   instruction_.des_velocity = s_n.second.v;
 }
 
-const Instruction &StateManager::operator()(double t) {
+const Instruction &GlobalPlanner::operator()(double t) {
   if (t <= 0) {
     instruction_.operation = Move::STOP;
     instruction_.des_state = instruction_.local_dest = logs_.front().second.state;
@@ -130,10 +130,10 @@ std::ostream &operator<<(std::ostream &os, const Transition &t) {
   return os << "T<" << t.state << "," << t.v << "," << Move::move2str(t.move) << ">" << std::endl;
 }
 
-void Poly3StateManager::interpolateVelocity(int,
-                                            double dt,
-                                            const std::pair<double, Transition> &s_p,
-                                            const std::pair<double, Transition> &s_n) {
+void Poly3Global::interpolateVelocity(int,
+                                      double dt,
+                                      const std::pair<double, Transition> &s_p,
+                                      const std::pair<double, Transition> &s_n) {
   const auto &v0 = s_p.second.v, vf = s_n.second.v, x = s_n.second.x;
   double period = s_n.first - s_p.first;
   for (int i = 0; i < 2; i++) {
@@ -142,8 +142,8 @@ void Poly3StateManager::interpolateVelocity(int,
   }
 }
 
-MiniAccStateManager::MiniAccStateManager(const std::vector<std::pair<double, State>> &states) :
-    StateManager(states), init_yaw_(states.front().second.yaw) {
+MiniAccGlobal::MiniAccGlobal(const std::vector<std::pair<double, State>> &states) :
+    GlobalPlanner(states), init_yaw_(states.front().second.yaw) {
   Eigen::SparseMatrix<double> hessian, constrains;
   Eigen::Matrix<double, -1, 2> constants;
   Eigen::VectorXd gradient;
@@ -176,7 +176,6 @@ MiniAccStateManager::MiniAccStateManager(const std::vector<std::pair<double, Sta
     }
     constrains.insert(constrain_counter, shifting) = 1; // x0
     constants.block<1, 2>(constrain_counter++, 0) = accumulated_x.transpose();
-//    constrain_counter++;
     if (idx == 0) {
       constrains.insert(constrain_counter++, 1 + shifting) = 1;
       constrains.insert(constrain_counter++, 2 + shifting) = 2;
@@ -200,13 +199,13 @@ MiniAccStateManager::MiniAccStateManager(const std::vector<std::pair<double, Sta
     }
   }
 
-  std::cout << hessian << std::endl;
-  std::cout << constrains << std::endl;
-  std::cout << constants.transpose() << std::endl;
-  std::cout << k << std::endl;
+//  std::cout << hessian << std::endl;
+//  std::cout << constrains << std::endl;
+//  std::cout << constants.transpose() << std::endl;
+//  std::cout << k << std::endl;
 
   OsqpEigen::Solver solver;
-  solver.settings()->setWarmStart(true);
+  solver.settings()->setWarmStart(false);
   solver.settings()->setVerbosity(false);
   solver.data()->setNumberOfVariables(number_of_variables);
   solver.data()->setNumberOfConstraints(number_of_constrains);
@@ -228,9 +227,9 @@ MiniAccStateManager::MiniAccStateManager(const std::vector<std::pair<double, Sta
 //  std::cout << "SOLUTION: \n" << angular_params_.transpose() << std::endl;
 }
 
-void MiniAccStateManager::interpolateVelocity(int idx, double dt,
-                                              const std::pair<double, Transition> &s_p,
-                                              const std::pair<double, Transition> &s_n) {
+void MiniAccGlobal::interpolateVelocity(int idx, double dt,
+                                        const std::pair<double, Transition> &s_p,
+                                        const std::pair<double, Transition> &s_n) {
   Eigen::Matrix<double, 1, 6> dt_pow, coeff;
   dt_pow.setOnes();
   coeff.setZero();

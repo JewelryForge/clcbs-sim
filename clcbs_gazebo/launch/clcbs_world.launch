@@ -1,29 +1,29 @@
 <launch>
 
-  <!-- these are the arguments you can pass this launch file, for example paused:=true -->
-  <arg name="paused" default="false" />
-  <arg name="use_sim_time" default="true" />
-  <arg name="gui" default="true" />
-  <arg name="headless" default="false" />
-  <arg name="debug" default="false" />
+    <!-- these are the arguments you can pass this launch file, for example paused:=true -->
+    <arg name="paused" default="false"/>
+    <arg name="use_sim_time" default="true"/>
+    <arg name="gui" default="true"/>
+    <arg name="headless" default="false"/>
+    <arg name="debug" default="false"/>
 
-  <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
-  <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find clcbs_gazebo)/models" />
-  <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find clcbs_gazebo)/worlds/clcbs.world" />
-    <arg name="debug" value="$(arg debug)" />
-    <arg name="gui" value="$(arg gui)" />
-    <arg name="paused" value="$(arg paused)" />
-    <arg name="use_sim_time" value="$(arg use_sim_time)" />
-    <arg name="headless" value="$(arg headless)" />
-  </include>
+    <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
+    <env name="GAZEBO_MODEL_PATH" value="${GAZEBO_MODEL_PATH}:$(find clcbs_gazebo)/models"/>
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="world_name" value="$(find clcbs_gazebo)/worlds/clcbs.world"/>
+        <arg name="debug" value="$(arg debug)"/>
+        <arg name="gui" value="$(arg gui)"/>
+        <arg name="paused" value="$(arg paused)"/>
+        <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+        <arg name="headless" value="$(arg headless)"/>
+    </include>
 
-  <include file="$(find clcbs_gazebo)/launch/clcbs_config.launch" />
-  <include file="$(find clcbs_gazebo)/launch/clcbs_world_rviz.launch" />
+    <include file="$(find clcbs_gazebo)/launch/clcbs_config.launch"/>
+    <include file="$(find clcbs_gazebo)/launch/clcbs_world_rviz.launch"/>
 
-  <!-- <node pkg="clcbs_gazebo" type="keyboard_velocity.py" name="keyboard_terminal" output="screen" launch-prefix="xterm -e" /> -->
+    <!-- <node pkg="clcbs_gazebo" type="keyboard_velocity.py" name="keyboard_terminal" output="screen" launch-prefix="xterm -e" /> -->
 
-  <!-- <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" ns="/agent_control" args="joint_state_controller agent_leftwheel_controller agent_rightwheel_controller"/> -->
-  <!-- <node name="VelocityObserver" pkg="clcbs_gazebo" type="VelocityObserver.py" launch-prefix="xterm -e"/> -->
+    <!-- <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false" output="screen" ns="/agent_control" args="joint_state_controller agent_leftwheel_controller agent_rightwheel_controller"/> -->
+    <!-- <node name="VelocityObserver" pkg="clcbs_gazebo" type="VelocityObserver.py" launch-prefix="xterm -e"/> -->
 
 </launch>

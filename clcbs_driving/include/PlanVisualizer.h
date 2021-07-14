@@ -5,7 +5,7 @@
 #include <string>
 #include <visualization_msgs/Marker.h>
 #include <nav_msgs/Path.h>
-#include "StateManager.h"
+#include "GlobalPlanner.h"
 
 class PlanVisualizer {
  public:
