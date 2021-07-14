@@ -2,9 +2,7 @@
 
 This is a gazebo and Songling Hunter simulation of [**Car-Like Conflict Based Search (CL-CBS)**](https://github.com/APRIL-ZJU/CL-CBS). In gazebo, a differential driven model with minimum rotation radius constrain  and in physical environment Hunter robot with Ackerman chassis are used for simulation.
 
-## Basic Usage:
-
-### Requirement
+## Requirements
 [**osqp**](https://osqp.org/docs/get_started/sources.html#build-from-sources)
 
 ```shell
@@ -32,6 +30,8 @@ ros dependencies
 ```shell
 sudo apt install ros-melodic-joint-state-controller ros-melodic-controller-manager ros-melodic-gazebo-ros-pkgs ros-melodic-gazebo-ros-control ros-melodic-velocity-controllers ros-melodic-map-server xterm
 ```
+
+## Basic Usage
 
 ### Build
 
